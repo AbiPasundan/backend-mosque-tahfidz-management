@@ -1,0 +1,8 @@
+version = 1
+url = "http://127.0.0.1:3000/api/v1/auth/login"
+method = "POST"
+
+[body]
+type = "raw"
+format = "json"
+body = '{"email": "admin@tahfidz.com", "password": "admin123"}'

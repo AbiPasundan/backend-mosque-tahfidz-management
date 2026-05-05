@@ -1,0 +1,45 @@
+erDiagram
+    USERS {
+        string id PK
+        string name
+        text password
+        string email
+        string role "mentor || admin"
+        deleted_at timestamp "null"
+    }
+
+    STUDENT {
+        string id PK
+        string mentor_id FK "Menandai USERs Utama/Wali Kelas"
+        string name
+        text password
+        string profile_img
+        string cover_img
+        int age
+        string learning_level
+        string fluency
+        string status
+        string contact
+        date join_date
+        last_progress timestamp
+        created_at timestamp
+        updated_at timestamp
+        deleted_at timestamp "null"
+    }
+
+    PROGRESS {
+        string id PK
+        string student_id FK
+        string mentor_id FK "Siapa yang menilai HARI INI (bisa guru pengganti)"
+        string surah
+        string status 
+        int ayat_start
+        int ayat_end
+        string notes
+        progress_date date
+    }
+
+    %% Relasi
+    USERS ||--o{ STUDENT : "membina (Wali Kelas)"
+    USERS ||--o{ PROGRESS : "mencatat hafalan"
+    STUDENT ||--o{ PROGRESS : "memiliki"

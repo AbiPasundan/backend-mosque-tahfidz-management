@@ -1,0 +1,583 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Management Siswa API",
+    "description": "API untuk sistem manajemen siswa dan hafalan",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/api/v1",
+      "description": "Base API URL"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Auth"
+    },
+    {
+      "name": "Users"
+    },
+    {
+      "name": "Students"
+    },
+    {
+      "name": "Surahs"
+    },
+    {
+      "name": "Progress"
+    },
+    {
+      "name": "Dashboard"
+    }
+  ],
+  "paths": {
+    "/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Login pengguna",
+        "description": "Login pengguna untuk mendapatkan token JWT",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Daftar pengguna",
+        "description": "Menampilkan daftar seluruh pengguna",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List users berhasil diambil"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Users"],
+        "summary": "Tambah pengguna",
+        "description": "Mendaftarkan pengguna baru",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User berhasil dibuat"
+          }
+        }
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Detail pengguna",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detail user berhasil diambil"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Users"],
+        "summary": "Update pengguna",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User berhasil diperbarui"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Users"],
+        "summary": "Hapus pengguna",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User berhasil dihapus"
+          }
+        }
+      }
+    },
+    "/students": {
+      "get": {
+        "tags": ["Students"],
+        "summary": "Daftar siswa",
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "learning_level",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List siswa berhasil diambil"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Students"],
+        "summary": "Tambah siswa",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Siswa berhasil dibuat"
+          }
+        }
+      }
+    },
+    "/students/{id}": {
+      "get": {
+        "tags": ["Students"],
+        "summary": "Detail siswa",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detail siswa berhasil diambil"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Students"],
+        "summary": "Update siswa",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Siswa berhasil diperbarui"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Students"],
+        "summary": "Hapus siswa",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Siswa berhasil dihapus"
+          }
+        }
+      }
+    },
+    "/surahs": {
+      "get": {
+        "tags": ["Surahs"],
+        "summary": "Daftar surah",
+        "responses": {
+          "200": {
+            "description": "List surah berhasil diambil"
+          }
+        }
+      }
+    },
+    "/progress": {
+      "get": {
+        "tags": ["Progress"],
+        "summary": "Riwayat hafalan",
+        "parameters": [
+          {
+            "name": "student_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Riwayat hafalan berhasil diambil"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Progress"],
+        "summary": "Tambah progress hafalan",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProgressCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Progress berhasil ditambahkan"
+          }
+        }
+      }
+    },
+    "/progress/{id}": {
+      "put": {
+        "tags": ["Progress"],
+        "summary": "Update progress hafalan",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProgressUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Progress berhasil diperbarui"
+          }
+        }
+      }
+    },
+    "/dashboard/summary": {
+      "get": {
+        "tags": ["Dashboard"],
+        "summary": "Summary dashboard",
+        "responses": {
+          "200": {
+            "description": "Summary dashboard berhasil diambil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardSummary"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          }
+        }
+      },
+      "UserCreate": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["admin", "ustadz"]
+          }
+        }
+      },
+      "UserUpdate": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          }
+        }
+      },
+      "StudentCreate": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "age": {
+            "type": "integer"
+          },
+          "learning_level": {
+            "type": "string"
+          },
+          "contact": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "StudentUpdate": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "age": {
+            "type": "integer"
+          },
+          "learning_level": {
+            "type": "string"
+          },
+          "contact": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "ProgressCreate": {
+        "type": "object",
+        "properties": {
+          "student_id": {
+            "type": "string"
+          },
+          "surah": {
+            "type": "string"
+          },
+          "ayat_start": {
+            "type": "integer"
+          },
+          "ayat_end": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      },
+      "ProgressUpdate": {
+        "type": "object",
+        "properties": {
+          "surah": {
+            "type": "string"
+          },
+          "ayat_start": {
+            "type": "integer"
+          },
+          "ayat_end": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      },
+      "DashboardSummary": {
+        "type": "object",
+        "properties": {
+          "total_students": {
+            "type": "integer"
+          },
+          "active_today": {
+            "type": "integer"
+          },
+          "weekly_progress_percentage": {
+            "type": "number",
+            "format": "float"
+          }
+        }
+      }
+    }
+  }
+}

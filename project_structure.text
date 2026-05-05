@@ -1,0 +1,57 @@
+├── cmd/
+│   └── api/
+│       └── main.go
+├── internal/
+│   ├── config/
+│   │   ├── database.go
+│   │   ├── env.go
+│   │   └── jwt.go
+│   ├── constants/
+│   │   ├── role.go
+│   │   └── status.go
+│   ├── database/
+│   │   ├── migrations/
+│   │   └── seeds/
+│   ├── domain/
+│   │   ├── auth/
+│   │   │   ├── dto.go
+│   │   │   ├── handler.go
+│   │   │   ├── model.go
+│   │   │   ├── repository.go
+│   │   │   └── service.go
+│   │   ├── progress/
+│   │   │   ├── dto.go
+│   │   │   ├── handler.go
+│   │   │   ├── model.go
+│   │   │   ├── repository.go
+│   │   │   └── service.go
+│   │   └── student/
+│   │       ├── dto.go
+│   │       ├── handler.go
+│   │       ├── model.go
+│   │       ├── repository.go
+│   │       └── service.go
+│   ├── middleware/
+│   │   ├── jwt.go
+│   │   ├── logger.go
+│   │   └── rbac.go
+│   └── routes/
+│       └── routes.go
+├── pkg/
+│   ├── token/
+│   │   └── jwt.go
+│   └── utils/
+│       ├── password.go
+│       ├── response.go
+│       └── validator.go
+├── docs/
+│   └── swagger.json
+├── .env
+├── .env.example
+├── apispect.json
+├── Dockerfile
+├── ERD.mermaid
+├── go.mod
+├── go.sum
+├── Makefile
+└── prompt.md

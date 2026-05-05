@@ -1,0 +1,136 @@
+package auth
+
+import (
+	"errors"
+	"strings"
+
+	"backend-mosque-tahfidz-management/pkg/token"
+	"backend-mosque-tahfidz-management/pkg/utils"
+
+	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
+)
+
+type AuthService interface {
+	Login(email, password string) (*LoginResponse, error)
+	CreateUser(req *CreateUserRequest) (*UserResponse, error)
+	GetUser(id uuid.UUID) (*UserResponse, error)
+	UpdateUser(id uuid.UUID, req *UpdateUserRequest) (*UserResponse, error)
+	DeleteUser(id uuid.UUID) error
+	ListUsers() ([]UserResponse, error)
+}
+
+type authService struct {
+	repo       UserRepository
+	tokenMaker token.Maker
+}
+
+func NewAuthService(repo UserRepository, tokenMaker token.Maker) AuthService {
+	return &authService{repo: repo, tokenMaker: tokenMaker}
+}
+
+func (s *authService) Login(email, password string) (*LoginResponse, error) {
+	user, err := s.repo.GetByEmail(email)
+	if err != nil {
+		log.Error().Err(err).Str("email", email).Msg("user not found")
+		return nil, errors.New("invalid email or password")
+	}
+
+	match, err := utils.ComparePassword(user.Password, password)
+	if err != nil || !match {
+		return nil, errors.New("invalid email or password")
+	}
+
+	token, err := s.tokenMaker.CreateToken(user.ID.String(), user.Role)
+	if err != nil {
+		return nil, err
+	}
+
+	return &LoginResponse{Token: token, Role: user.Role}, nil
+}
+
+func (s *authService) CreateUser(req *CreateUserRequest) (*UserResponse, error) {
+	hashedPassword, err := utils.HashPassword(req.Password)
+	if err != nil {
+		return nil, err
+	}
+
+	user := &User{
+		ID:       uuid.New(),
+		Name:     req.Name,
+		Email:    req.Email,
+		Password: hashedPassword,
+		Role:     req.Role,
+	}
+
+	if err := s.repo.Create(user); err != nil {
+		if strings.Contains(err.Error(), "duplicate key") {
+			return nil, errors.New("email already exists")
+		}
+		return nil, err
+	}
+
+	return &UserResponse{
+		ID:    user.ID,
+		Name:  user.Name,
+		Email: user.Email,
+		Role:  user.Role,
+	}, nil
+}
+
+func (s *authService) GetUser(id uuid.UUID) (*UserResponse, error) {
+	user, err := s.repo.GetByID(id)
+	if err != nil {
+		return nil, errors.New("user not found")
+	}
+	return &UserResponse{
+		ID:    user.ID,
+		Name:  user.Name,
+		Email: user.Email,
+		Role:  user.Role,
+	}, nil
+}
+
+func (s *authService) UpdateUser(id uuid.UUID, req *UpdateUserRequest) (*UserResponse, error) {
+	user, err := s.repo.GetByID(id)
+	if err != nil {
+		return nil, errors.New("user not found")
+	}
+
+	user.Name = req.Name
+	user.Email = req.Email
+	user.Role = req.Role
+
+	if err := s.repo.Update(user); err != nil {
+		return nil, err
+	}
+
+	return &UserResponse{
+		ID:    user.ID,
+		Name:  user.Name,
+		Email: user.Email,
+		Role:  user.Role,
+	}, nil
+}
+
+func (s *authService) DeleteUser(id uuid.UUID) error {
+	return s.repo.Delete(id)
+}
+
+func (s *authService) ListUsers() ([]UserResponse, error) {
+	users, err := s.repo.List()
+	if err != nil {
+		return nil, err
+	}
+
+	var responses []UserResponse
+	for _, u := range users {
+		responses = append(responses, UserResponse{
+			ID:    u.ID,
+			Name:  u.Name,
+			Email: u.Email,
+			Role:  u.Role,
+		})
+	}
+	return responses, nil
+}
