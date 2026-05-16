@@ -12,6 +12,15 @@ func SuccessResponse(c *fiber.Ctx, status int, message string, data interface{})
 	})
 }
 
+func PaginatedResponse(c *fiber.Ctx, status int, message string, data interface{}, meta PaginationMeta) error {
+	return c.Status(status).JSON(fiber.Map{
+		"success": true,
+		"message": message,
+		"data":    data,
+		"meta":    meta,
+	})
+}
+
 func ErrorResponse(c *fiber.Ctx, status int, message string) error {
 	return c.Status(status).JSON(fiber.Map{
 		"success": false,
