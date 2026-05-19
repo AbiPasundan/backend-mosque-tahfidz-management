@@ -23,6 +23,7 @@ type UpdateStudentRequest struct {
 type StudentResponse struct {
 	ID            uuid.UUID `json:"id"`
 	MentorID      uuid.UUID `json:"mentor_id"`
+	MentorName    string    `json:"mentor_name,omitempty"`
 	Name          string    `json:"name"`
 	ProfileImg    string    `json:"profile_img,omitempty"`
 	CoverImg      string    `json:"cover_img,omitempty"`

@@ -12,7 +12,7 @@ type StudentRepository interface {
 	GetByID(id uuid.UUID) (*Student, error)
 	Update(student *Student) error
 	Delete(id uuid.UUID) error
-	List(search, status, learningLevel string) ([]Student, error)
+	List(search, status, learningLevel string, page, limit int) ([]Student, int, error)
 }
 
 type studentRepository struct {
@@ -34,7 +34,12 @@ func (r *studentRepository) Create(student *Student) error {
 
 func (r *studentRepository) GetByID(id uuid.UUID) (*Student, error) {
 	var student Student
-	query := `SELECT * FROM students WHERE id = $1 AND deleted_at IS NULL`
+	query := `
+		SELECT s.*, u.name AS mentor_name 
+		FROM students s
+		LEFT JOIN users u ON s.mentor_id = u.id
+		WHERE s.id = $1 AND s.deleted_at IS NULL
+	`
 	err := r.db.Get(&student, query, id)
 	return &student, err
 }
@@ -53,27 +58,44 @@ func (r *studentRepository) Delete(id uuid.UUID) error {
 	return err
 }
 
-func (r *studentRepository) List(search, status, learningLevel string) ([]Student, error) {
+func (r *studentRepository) List(search, status, learningLevel string, page, limit int) ([]Student, int, error) {
 	var students []Student
-	query := `SELECT * FROM students WHERE deleted_at IS NULL`
+	var total int
+
+	baseQuery := `
+		FROM students s
+		LEFT JOIN users u ON s.mentor_id = u.id
+		WHERE s.deleted_at IS NULL
+	`
 	args := []interface{}{}
 	idx := 1
 
 	if search != "" {
-		query += fmt.Sprintf(` AND name ILIKE $%d`, idx)
+		baseQuery += fmt.Sprintf(` AND s.name ILIKE $%d`, idx)
 		args = append(args, "%"+search+"%")
 		idx++
 	}
 	if status != "" {
-		query += fmt.Sprintf(` AND status = $%d`, idx)
+		baseQuery += fmt.Sprintf(` AND s.status = $%d`, idx)
 		args = append(args, status)
 		idx++
 	}
 	if learningLevel != "" {
-		query += fmt.Sprintf(` AND learning_level = $%d`, idx)
+		baseQuery += fmt.Sprintf(` AND s.learning_level = $%d`, idx)
 		args = append(args, learningLevel)
+		idx++
 	}
 
+	// Get total count
+	countQuery := `SELECT COUNT(s.id) ` + baseQuery
+	if err := r.db.Get(&total, countQuery, args...); err != nil {
+		return nil, 0, err
+	}
+
+	// Apply pagination
+	query := `SELECT s.*, u.name AS mentor_name ` + baseQuery + fmt.Sprintf(` ORDER BY s.created_at DESC LIMIT $%d OFFSET $%d`, idx, idx+1)
+	args = append(args, limit, (page-1)*limit)
+
 	err := r.db.Select(&students, query, args...)
-	return students, err
+	return students, total, err
 }

@@ -92,11 +92,13 @@ func (h *StudentHandler) ListStudents(c *fiber.Ctx) error {
 	search := c.Query("search")
 	status := c.Query("status")
 	learningLevel := c.Query("learning_level")
+	page, limit := utils.GetPaginationParams(c)
 
-	students, err := h.service.ListStudents(search, status, learningLevel)
+	students, total, err := h.service.ListStudents(search, status, learningLevel, page, limit)
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
 	}
 
-	return utils.SuccessResponse(c, fiber.StatusOK, "students listed", students)
+	meta := utils.CreatePaginationMeta(total, page, limit)
+	return utils.PaginatedResponse(c, fiber.StatusOK, "students listed", students, meta)
 }

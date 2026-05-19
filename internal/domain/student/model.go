@@ -9,6 +9,7 @@ import (
 type Student struct {
 	ID            uuid.UUID  `db:"id"`
 	MentorID      uuid.UUID  `db:"mentor_id"`
+	MentorName    string     `db:"mentor_name"`
 	Name          string     `db:"name"`
 	Password      string     `db:"password"`
 	ProfileImg    string     `db:"profile_img"`
