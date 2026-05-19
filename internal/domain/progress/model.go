@@ -10,6 +10,7 @@ type Progress struct {
 	ID           uuid.UUID `db:"id"`
 	StudentID    uuid.UUID `db:"student_id"`
 	MentorID     uuid.UUID `db:"mentor_id"`
+	MentorName   string    `db:"mentor_name"`
 	Surah        string    `db:"surah"`
 	Status       string    `db:"status"`
 	AyatStart    int       `db:"ayat_start"`

@@ -24,16 +24,38 @@ func NewProgressRepository(db *sqlx.DB) ProgressRepository {
 }
 
 func (r *progressRepository) Create(progress *Progress) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
 	query := `INSERT INTO progress (id, student_id, mentor_id, surah, status, ayat_start, ayat_end, notes, progress_date)
 	          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
-	_, err := r.db.Exec(query, progress.ID, progress.StudentID, progress.MentorID, progress.Surah,
+	_, err = tx.Exec(query, progress.ID, progress.StudentID, progress.MentorID, progress.Surah,
 		progress.Status, progress.AyatStart, progress.AyatEnd, progress.Notes, progress.ProgressDate)
-	return err
+	if err != nil {
+		return err
+	}
+
+	// Update student's last_progress
+	updateQuery := `UPDATE students SET last_progress = $1 WHERE id = $2`
+	_, err = tx.Exec(updateQuery, progress.ProgressDate, progress.StudentID)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
 
 func (r *progressRepository) GetByID(id uuid.UUID) (*Progress, error) {
 	var progress Progress
-	query := `SELECT * FROM progress WHERE id = $1`
+	query := `
+		SELECT p.*, u.name AS mentor_name 
+		FROM progress p
+		LEFT JOIN users u ON p.mentor_id = u.id
+		WHERE p.id = $1
+	`
 	err := r.db.Get(&progress, query, id)
 	return &progress, err
 }
@@ -47,17 +69,22 @@ func (r *progressRepository) Update(progress *Progress) error {
 
 func (r *progressRepository) List(studentID, date string) ([]Progress, error) {
 	var progress []Progress
-	query := `SELECT * FROM progress WHERE 1=1`
+	query := `
+		SELECT p.*, u.name AS mentor_name 
+		FROM progress p
+		LEFT JOIN users u ON p.mentor_id = u.id
+		WHERE 1=1
+	`
 	args := []interface{}{}
 	idx := 1
 
 	if studentID != "" {
-		query += fmt.Sprintf(` AND student_id = $%d`, idx)
+		query += fmt.Sprintf(` AND p.student_id = $%d`, idx)
 		args = append(args, studentID)
 		idx++
 	}
 	if date != "" {
-		query += fmt.Sprintf(` AND progress_date = $%d`, idx)
+		query += fmt.Sprintf(` AND p.progress_date = $%d`, idx)
 		args = append(args, date)
 	}
 

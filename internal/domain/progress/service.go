@@ -9,6 +9,7 @@ import (
 
 type ProgressService interface {
 	CreateProgress(req *CreateProgressRequest, mentorID uuid.UUID) (*ProgressResponse, error)
+	BulkCreateProgress(req *BulkCreateProgressRequest, mentorID uuid.UUID) ([]ProgressResponse, error)
 	UpdateProgress(id uuid.UUID, req *UpdateProgressRequest) (*ProgressResponse, error)
 	ListProgress(studentID, date string) ([]ProgressResponse, error)
 	GetDashboardSummary() (*DashboardSummaryResponse, error)
@@ -23,8 +24,9 @@ func NewProgressService(repo ProgressRepository) ProgressService {
 }
 
 func (s *progressService) CreateProgress(req *CreateProgressRequest, mentorID uuid.UUID) (*ProgressResponse, error) {
+	id := uuid.New()
 	progress := &Progress{
-		ID:           uuid.New(),
+		ID:           id,
 		StudentID:    req.StudentID,
 		MentorID:     mentorID,
 		Surah:        req.Surah,
@@ -39,7 +41,25 @@ func (s *progressService) CreateProgress(req *CreateProgressRequest, mentorID uu
 		return nil, err
 	}
 
-	return s.toResponse(progress), nil
+	// Fetch full record to get joined mentor_name
+	fullProgress, err := s.repo.GetByID(id)
+	if err != nil {
+		return s.toResponse(progress), nil // Fallback
+	}
+
+	return s.toResponse(fullProgress), nil
+}
+
+func (s *progressService) BulkCreateProgress(req *BulkCreateProgressRequest, mentorID uuid.UUID) ([]ProgressResponse, error) {
+	var responses []ProgressResponse
+	for _, item := range req.Items {
+		resp, err := s.CreateProgress(&item, mentorID)
+		if err != nil {
+			return nil, err
+		}
+		responses = append(responses, *resp)
+	}
+	return responses, nil
 }
 
 func (s *progressService) UpdateProgress(id uuid.UUID, req *UpdateProgressRequest) (*ProgressResponse, error) {
@@ -92,6 +112,7 @@ func (s *progressService) toResponse(progress *Progress) *ProgressResponse {
 		ID:           progress.ID,
 		StudentID:    progress.StudentID,
 		MentorID:     progress.MentorID,
+		MentorName:   progress.MentorName,
 		Surah:        progress.Surah,
 		Status:       progress.Status,
 		AyatStart:    progress.AyatStart,
