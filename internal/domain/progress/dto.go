@@ -21,10 +21,15 @@ type UpdateProgressRequest struct {
 	Notes     string `json:"notes"`
 }
 
+type BulkCreateProgressRequest struct {
+	Items []CreateProgressRequest `json:"items" validate:"required,dive"`
+}
+
 type ProgressResponse struct {
 	ID           uuid.UUID `json:"id"`
 	StudentID    uuid.UUID `json:"student_id"`
 	MentorID     uuid.UUID `json:"mentor_id"`
+	MentorName   string    `json:"mentor_name,omitempty"`
 	Surah        string    `json:"surah"`
 	Status       string    `json:"status"`
 	AyatStart    int       `json:"ayat_start"`
