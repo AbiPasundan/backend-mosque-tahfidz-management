@@ -22,8 +22,6 @@ func Setup(app *fiber.App, authHandler *auth.AuthHandler, studentHandler *studen
 
 	api := app.Group("/api/v1")
 
-	api.Get("/me", authHandler.Me)
-
 	// Auth with rate limiting
 	authGroup := api.Group("/auth")
 	authGroup.Use(limiter.New(limiter.Config{
@@ -68,10 +66,10 @@ func Setup(app *fiber.App, authHandler *auth.AuthHandler, studentHandler *studen
 	})
 
 	// Progress
-	progressGroup := api.Group("/progress", middleware.JWT(tokenMaker), middleware.RBAC("mentor", "admin"))
-	progressGroup.Get("/", progressHandler.ListProgress)
-	progressGroup.Post("/", progressHandler.CreateProgress)
-	progressGroup.Put("/:id", progressHandler.UpdateProgress)
+	api.Post("/progress/bulk", middleware.JWT(tokenMaker), middleware.RBAC("mentor", "admin"), progressHandler.BulkCreateProgress)
+	api.Get("/progress", middleware.JWT(tokenMaker), middleware.RBAC("mentor", "admin"), progressHandler.ListProgress)
+	api.Post("/progress", middleware.JWT(tokenMaker), middleware.RBAC("mentor", "admin"), progressHandler.CreateProgress)
+	api.Put("/progress/:id", middleware.JWT(tokenMaker), middleware.RBAC("mentor", "admin"), progressHandler.UpdateProgress)
 
 	// Dashboard
 	api.Get("/dashboard/summary", progressHandler.GetDashboardSummary)
