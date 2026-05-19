@@ -17,7 +17,7 @@ type AuthService interface {
 	GetUser(id uuid.UUID) (*UserResponse, error)
 	UpdateUser(id uuid.UUID, req *UpdateUserRequest) (*UserResponse, error)
 	DeleteUser(id uuid.UUID) error
-	ListUsers() ([]UserResponse, error)
+	ListUsers(page, limit int) ([]UserResponse, int, error)
 }
 
 type authService struct {
@@ -117,10 +117,10 @@ func (s *authService) DeleteUser(id uuid.UUID) error {
 	return s.repo.Delete(id)
 }
 
-func (s *authService) ListUsers() ([]UserResponse, error) {
-	users, err := s.repo.List()
+func (s *authService) ListUsers(page, limit int) ([]UserResponse, int, error) {
+	users, total, err := s.repo.List(page, limit)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	var responses []UserResponse
@@ -132,5 +132,5 @@ func (s *authService) ListUsers() ([]UserResponse, error) {
 			Role:  u.Role,
 		})
 	}
-	return responses, nil
+	return responses, total, nil
 }

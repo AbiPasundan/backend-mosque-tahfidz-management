@@ -169,10 +169,13 @@ func (h *AuthHandler) DeleteUser(c *fiber.Ctx) error {
 }
 
 func (h *AuthHandler) ListUsers(c *fiber.Ctx) error {
-	users, err := h.service.ListUsers()
+	page, limit := utils.GetPaginationParams(c)
+
+	users, total, err := h.service.ListUsers(page, limit)
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
 	}
 
-	return utils.SuccessResponse(c, fiber.StatusOK, "users listed", users)
+	meta := utils.CreatePaginationMeta(total, page, limit)
+	return utils.PaginatedResponse(c, fiber.StatusOK, "users listed", users, meta)
 }

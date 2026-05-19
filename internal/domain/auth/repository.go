@@ -11,7 +11,7 @@ type UserRepository interface {
 	GetByEmail(email string) (*User, error)
 	Update(user *User) error
 	Delete(id uuid.UUID) error
-	List() ([]User, error)
+	List(page, limit int) ([]User, int, error)
 }
 
 type userRepository struct {
@@ -54,9 +54,16 @@ func (r *userRepository) Delete(id uuid.UUID) error {
 	return err
 }
 
-func (r *userRepository) List() ([]User, error) {
+func (r *userRepository) List(page, limit int) ([]User, int, error) {
 	var users []User
-	query := `SELECT id, name, email, role FROM users WHERE deleted_at IS NULL`
-	err := r.db.Select(&users, query)
-	return users, err
+	var total int
+
+	countQuery := `SELECT COUNT(id) FROM users WHERE deleted_at IS NULL`
+	if err := r.db.Get(&total, countQuery); err != nil {
+		return nil, 0, err
+	}
+
+	query := `SELECT id, name, email, role FROM users WHERE deleted_at IS NULL ORDER BY name LIMIT $1 OFFSET $2`
+	err := r.db.Select(&users, query, limit, (page-1)*limit)
+	return users, total, err
 }
