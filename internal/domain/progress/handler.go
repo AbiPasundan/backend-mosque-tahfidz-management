@@ -87,13 +87,15 @@ func (h *ProgressHandler) UpdateProgress(c *fiber.Ctx) error {
 func (h *ProgressHandler) ListProgress(c *fiber.Ctx) error {
 	studentID := c.Query("student_id")
 	date := c.Query("date")
+	page, limit := utils.GetPaginationParams(c)
 
-	progressList, err := h.service.ListProgress(studentID, date)
+	progressList, total, err := h.service.ListProgress(studentID, date, page, limit)
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
 	}
 
-	return utils.SuccessResponse(c, fiber.StatusOK, "progress listed", progressList)
+	meta := utils.CreatePaginationMeta(total, page, limit)
+	return utils.PaginatedResponse(c, fiber.StatusOK, "progress listed", progressList, meta)
 }
 
 func (h *ProgressHandler) GetDashboardSummary(c *fiber.Ctx) error {
