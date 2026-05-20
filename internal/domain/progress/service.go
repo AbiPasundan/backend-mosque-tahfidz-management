@@ -11,7 +11,7 @@ type ProgressService interface {
 	CreateProgress(req *CreateProgressRequest, mentorID uuid.UUID) (*ProgressResponse, error)
 	BulkCreateProgress(req *BulkCreateProgressRequest, mentorID uuid.UUID) ([]ProgressResponse, error)
 	UpdateProgress(id uuid.UUID, req *UpdateProgressRequest) (*ProgressResponse, error)
-	ListProgress(studentID, date string) ([]ProgressResponse, error)
+	ListProgress(studentID, date string, page, limit int) ([]ProgressResponse, int, error)
 	GetDashboardSummary() (*DashboardSummaryResponse, error)
 }
 
@@ -81,17 +81,17 @@ func (s *progressService) UpdateProgress(id uuid.UUID, req *UpdateProgressReques
 	return s.toResponse(progress), nil
 }
 
-func (s *progressService) ListProgress(studentID, date string) ([]ProgressResponse, error) {
-	progressList, err := s.repo.List(studentID, date)
+func (s *progressService) ListProgress(studentID, date string, page, limit int) ([]ProgressResponse, int, error) {
+	progressList, total, err := s.repo.List(studentID, date, page, limit)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	var responses []ProgressResponse
 	for _, p := range progressList {
 		responses = append(responses, *s.toResponse(&p))
 	}
-	return responses, nil
+	return responses, total, nil
 }
 
 func (s *progressService) GetDashboardSummary() (*DashboardSummaryResponse, error) {
