@@ -11,7 +11,7 @@ type ProgressRepository interface {
 	Create(progress *Progress) error
 	GetByID(id uuid.UUID) (*Progress, error)
 	Update(progress *Progress) error
-	List(studentID, date string) ([]Progress, error)
+	List(studentID, date string, page, limit int) ([]Progress, int, error)
 	GetDashboardSummary() (*DashboardSummary, error)
 }
 
@@ -67,10 +67,11 @@ func (r *progressRepository) Update(progress *Progress) error {
 	return err
 }
 
-func (r *progressRepository) List(studentID, date string) ([]Progress, error) {
+func (r *progressRepository) List(studentID, date string, page, limit int) ([]Progress, int, error) {
 	var progress []Progress
-	query := `
-		SELECT p.*, u.name AS mentor_name 
+	var total int
+
+	baseQuery := `
 		FROM progress p
 		LEFT JOIN users u ON p.mentor_id = u.id
 		WHERE 1=1
@@ -79,17 +80,28 @@ func (r *progressRepository) List(studentID, date string) ([]Progress, error) {
 	idx := 1
 
 	if studentID != "" {
-		query += fmt.Sprintf(` AND p.student_id = $%d`, idx)
+		baseQuery += fmt.Sprintf(` AND p.student_id = $%d`, idx)
 		args = append(args, studentID)
 		idx++
 	}
 	if date != "" {
-		query += fmt.Sprintf(` AND p.progress_date = $%d`, idx)
+		baseQuery += fmt.Sprintf(` AND p.progress_date = $%d`, idx)
 		args = append(args, date)
+		idx++
 	}
 
+	// Get total count
+	countQuery := `SELECT COUNT(p.id) ` + baseQuery
+	if err := r.db.Get(&total, countQuery, args...); err != nil {
+		return nil, 0, err
+	}
+
+	// Apply pagination
+	query := `SELECT p.*, u.name AS mentor_name ` + baseQuery + fmt.Sprintf(` ORDER BY p.progress_date DESC LIMIT $%d OFFSET $%d`, idx, idx+1)
+	args = append(args, limit, (page-1)*limit)
+
 	err := r.db.Select(&progress, query, args...)
-	return progress, err
+	return progress, total, err
 }
 
 func (r *progressRepository) GetDashboardSummary() (*DashboardSummary, error) {
