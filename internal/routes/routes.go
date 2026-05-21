@@ -28,9 +28,11 @@ func Setup(app *fiber.App, authHandler *auth.AuthHandler, studentHandler *studen
 		Max:        10,
 		Expiration: 1 * time.Minute,
 	}))
-	authGroup.Get("/me", middleware.JWT(tokenMaker), authHandler.Me)
-	authGroup.Post("/login", authHandler.Login)
-	authGroup.Post("/logout", authHandler.Logout)
+	authGroup.Get("me", middleware.JWT(tokenMaker), authHandler.Me)
+	authGroup.Patch("profile", middleware.JWT(tokenMaker), authHandler.UpdateProfile)
+	authGroup.Patch("password", middleware.JWT(tokenMaker), authHandler.UpdatePassword)
+	authGroup.Post("login", authHandler.Login)
+	authGroup.Post("logout", authHandler.Logout)
 
 	// Users (admin only)
 	userGroup := api.Group("/users", middleware.JWT(tokenMaker), middleware.RBAC("admin"))
