@@ -76,16 +76,17 @@ func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 
 // me
 func (h *AuthHandler) Me(c *fiber.Ctx) error {
-	userID := c.Locals("user_id")
-	role := c.Locals("role")
+	userID, err := uuid.Parse(c.Locals("user_id").(string))
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusUnauthorized, "invalid user session")
+	}
 
-	return c.JSON(fiber.Map{
-		"success": true,
-		"data": fiber.Map{
-			"user_id": userID,
-			"role":    role,
-		},
-	})
+	resp, err := h.service.GetUser(userID)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusNotFound, "user not found")
+	}
+
+	return utils.SuccessResponse(c, fiber.StatusOK, "user profile fetched", resp)
 }
 
 // @Summary Register new user (Admin only)
@@ -169,13 +170,60 @@ func (h *AuthHandler) DeleteUser(c *fiber.Ctx) error {
 }
 
 func (h *AuthHandler) ListUsers(c *fiber.Ctx) error {
+	search := c.Query("search")
+	role := c.Query("role")
 	page, limit := utils.GetPaginationParams(c)
 
-	users, total, err := h.service.ListUsers(page, limit)
+	users, total, err := h.service.ListUsers(search, role, page, limit)
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
 	}
 
 	meta := utils.CreatePaginationMeta(total, page, limit)
 	return utils.PaginatedResponse(c, fiber.StatusOK, "users listed", users, meta)
+}
+
+func (h *AuthHandler) UpdateProfile(c *fiber.Ctx) error {
+	userID, err := uuid.Parse(c.Locals("user_id").(string))
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusUnauthorized, "invalid user context")
+	}
+
+	var req UpdateProfileRequest
+	if err := c.BodyParser(&req); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusBadRequest, "invalid request body")
+	}
+
+	if err := utils.Validate(req); err != nil {
+		return utils.ValidationErrorResponse(c, err)
+	}
+
+	resp, err := h.service.UpdateProfile(userID, &req)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+	}
+
+	return utils.SuccessResponse(c, fiber.StatusOK, "profile updated", resp)
+}
+
+func (h *AuthHandler) UpdatePassword(c *fiber.Ctx) error {
+	userID, err := uuid.Parse(c.Locals("user_id").(string))
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusUnauthorized, "invalid user context")
+	}
+
+	var req UpdatePasswordRequest
+	if err := c.BodyParser(&req); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusBadRequest, "invalid request body")
+	}
+
+	if err := utils.Validate(req); err != nil {
+		return utils.ValidationErrorResponse(c, err)
+	}
+
+	if err := h.service.UpdatePassword(userID, &req); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusBadRequest, err.Error())
+	}
+
+	return utils.SuccessResponse(c, fiber.StatusOK, "password updated", nil)
 }
