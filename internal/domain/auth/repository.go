@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"fmt"
+
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
@@ -11,7 +13,8 @@ type UserRepository interface {
 	GetByEmail(email string) (*User, error)
 	Update(user *User) error
 	Delete(id uuid.UUID) error
-	List(page, limit int) ([]User, int, error)
+	List(search, role string, page, limit int) ([]User, int, error)
+	UpdatePassword(id uuid.UUID, hashedPassword string) error
 }
 
 type userRepository struct {
@@ -54,16 +57,40 @@ func (r *userRepository) Delete(id uuid.UUID) error {
 	return err
 }
 
-func (r *userRepository) List(page, limit int) ([]User, int, error) {
+func (r *userRepository) List(search, role string, page, limit int) ([]User, int, error) {
 	var users []User
 	var total int
 
-	countQuery := `SELECT COUNT(id) FROM users WHERE deleted_at IS NULL`
-	if err := r.db.Get(&total, countQuery); err != nil {
+	baseQuery := `FROM users WHERE deleted_at IS NULL`
+	args := []interface{}{}
+	idx := 1
+
+	if search != "" {
+		baseQuery += fmt.Sprintf(` AND (name ILIKE $%d OR email ILIKE $%d)`, idx, idx)
+		args = append(args, "%"+search+"%")
+		idx++
+	}
+
+	if role != "" {
+		baseQuery += fmt.Sprintf(` AND role = $%d`, idx)
+		args = append(args, role)
+		idx++
+	}
+
+	countQuery := `SELECT COUNT(id) ` + baseQuery
+	if err := r.db.Get(&total, countQuery, args...); err != nil {
 		return nil, 0, err
 	}
 
-	query := `SELECT id, name, email, role FROM users WHERE deleted_at IS NULL ORDER BY name LIMIT $1 OFFSET $2`
-	err := r.db.Select(&users, query, limit, (page-1)*limit)
+	query := `SELECT id, name, email, role ` + baseQuery + fmt.Sprintf(` ORDER BY name LIMIT $%d OFFSET $%d`, idx, idx+1)
+	args = append(args, limit, (page-1)*limit)
+
+	err := r.db.Select(&users, query, args...)
 	return users, total, err
+}
+
+func (r *userRepository) UpdatePassword(id uuid.UUID, hashedPassword string) error {
+	query := `UPDATE users SET password = $2 WHERE id = $1 AND deleted_at IS NULL`
+	_, err := r.db.Exec(query, id, hashedPassword)
+	return err
 }

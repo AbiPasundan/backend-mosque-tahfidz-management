@@ -27,9 +27,20 @@ type UpdateUserRequest struct {
 	Role  string `json:"role" validate:"required,oneof=admin mentor"`
 }
 
+type UpdateProfileRequest struct {
+	Name  string `json:"name"`
+	Email string `json:"email" validate:"omitempty,email"`
+}
+
+type UpdatePasswordRequest struct {
+	OldPassword string `json:"old_password" validate:"required"`
+	NewPassword string `json:"new_password" validate:"required,min=8"`
+}
+
 type UserResponse struct {
-	ID    uuid.UUID `json:"id"`
-	Name  string    `json:"name"`
-	Email string    `json:"email"`
-	Role  string    `json:"role"`
+	ID     uuid.UUID `json:"id"`
+	UserID uuid.UUID `json:"user_id"`
+	Name   string    `json:"name"`
+	Email  string    `json:"email"`
+	Role   string    `json:"role"`
 }
