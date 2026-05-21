@@ -17,7 +17,9 @@ type AuthService interface {
 	GetUser(id uuid.UUID) (*UserResponse, error)
 	UpdateUser(id uuid.UUID, req *UpdateUserRequest) (*UserResponse, error)
 	DeleteUser(id uuid.UUID) error
-	ListUsers(page, limit int) ([]UserResponse, int, error)
+	ListUsers(search, role string, page, limit int) ([]UserResponse, int, error)
+	UpdateProfile(id uuid.UUID, req *UpdateProfileRequest) (*UserResponse, error)
+	UpdatePassword(id uuid.UUID, req *UpdatePasswordRequest) error
 }
 
 type authService struct {
@@ -71,10 +73,11 @@ func (s *authService) CreateUser(req *CreateUserRequest) (*UserResponse, error) 
 	}
 
 	return &UserResponse{
-		ID:    user.ID,
-		Name:  user.Name,
-		Email: user.Email,
-		Role:  user.Role,
+		ID:     user.ID,
+		UserID: user.ID,
+		Name:   user.Name,
+		Email:  user.Email,
+		Role:   user.Role,
 	}, nil
 }
 
@@ -84,10 +87,11 @@ func (s *authService) GetUser(id uuid.UUID) (*UserResponse, error) {
 		return nil, errors.New("user not found")
 	}
 	return &UserResponse{
-		ID:    user.ID,
-		Name:  user.Name,
-		Email: user.Email,
-		Role:  user.Role,
+		ID:     user.ID,
+		UserID: user.ID,
+		Name:   user.Name,
+		Email:  user.Email,
+		Role:   user.Role,
 	}, nil
 }
 
@@ -106,10 +110,11 @@ func (s *authService) UpdateUser(id uuid.UUID, req *UpdateUserRequest) (*UserRes
 	}
 
 	return &UserResponse{
-		ID:    user.ID,
-		Name:  user.Name,
-		Email: user.Email,
-		Role:  user.Role,
+		ID:     user.ID,
+		UserID: user.ID,
+		Name:   user.Name,
+		Email:  user.Email,
+		Role:   user.Role,
 	}, nil
 }
 
@@ -117,8 +122,8 @@ func (s *authService) DeleteUser(id uuid.UUID) error {
 	return s.repo.Delete(id)
 }
 
-func (s *authService) ListUsers(page, limit int) ([]UserResponse, int, error) {
-	users, total, err := s.repo.List(page, limit)
+func (s *authService) ListUsers(search, role string, page, limit int) ([]UserResponse, int, error) {
+	users, total, err := s.repo.List(search, role, page, limit)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -126,11 +131,57 @@ func (s *authService) ListUsers(page, limit int) ([]UserResponse, int, error) {
 	var responses []UserResponse
 	for _, u := range users {
 		responses = append(responses, UserResponse{
-			ID:    u.ID,
-			Name:  u.Name,
-			Email: u.Email,
-			Role:  u.Role,
+			ID:     u.ID,
+			UserID: u.ID,
+			Name:   u.Name,
+			Email:  u.Email,
+			Role:   u.Role,
 		})
 	}
 	return responses, total, nil
+}
+
+func (s *authService) UpdateProfile(id uuid.UUID, req *UpdateProfileRequest) (*UserResponse, error) {
+	user, err := s.repo.GetByID(id)
+	if err != nil {
+		return nil, errors.New("user not found")
+	}
+
+	if req.Name != "" {
+		user.Name = req.Name
+	}
+	if req.Email != "" {
+		user.Email = req.Email
+	}
+
+	if err := s.repo.Update(user); err != nil {
+		return nil, err
+	}
+
+	return &UserResponse{
+		ID:     user.ID,
+		UserID: user.ID,
+		Name:   user.Name,
+		Email:  user.Email,
+		Role:   user.Role,
+	}, nil
+}
+
+func (s *authService) UpdatePassword(id uuid.UUID, req *UpdatePasswordRequest) error {
+	user, err := s.repo.GetByID(id)
+	if err != nil {
+		return errors.New("user not found")
+	}
+
+	match, err := utils.ComparePassword(user.Password, req.OldPassword)
+	if err != nil || !match {
+		return errors.New("old password does not match")
+	}
+
+	hashedPassword, err := utils.HashPassword(req.NewPassword)
+	if err != nil {
+		return err
+	}
+
+	return s.repo.UpdatePassword(id, hashedPassword)
 }
