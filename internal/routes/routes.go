@@ -1,13 +1,12 @@
 package routes
 
 import (
-	"encoding/json"
-	"fmt"
 	"time"
 
 	"backend-mosque-tahfidz-management/internal/domain/auth"
 	"backend-mosque-tahfidz-management/internal/domain/progress"
 	"backend-mosque-tahfidz-management/internal/domain/student"
+	"backend-mosque-tahfidz-management/internal/domain/surah"
 	"backend-mosque-tahfidz-management/internal/middleware"
 	"backend-mosque-tahfidz-management/pkg/token"
 
@@ -15,7 +14,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 )
 
-func Setup(app *fiber.App, authHandler *auth.AuthHandler, studentHandler *student.StudentHandler, progressHandler *progress.ProgressHandler, tokenMaker token.Maker) {
+func Setup(app *fiber.App, authHandler *auth.AuthHandler, studentHandler *student.StudentHandler, progressHandler *progress.ProgressHandler, surahHandler *surah.SurahHandler, tokenMaker token.Maker) {
 	app.Use(middleware.RequestID())
 	app.Use(middleware.Logger())
 	app.Use(middleware.Recover())
@@ -51,21 +50,7 @@ func Setup(app *fiber.App, authHandler *auth.AuthHandler, studentHandler *studen
 	studentGroup.Delete("/:id", middleware.JWT(tokenMaker), middleware.RBAC("admin"), studentHandler.DeleteStudent)
 
 	// Surahs
-	api.Get("/surahs", func(c *fiber.Ctx) error {
-		data := getSurahs()
-
-		if data == nil {
-			return c.Status(500).JSON(fiber.Map{
-				"success": false,
-				"message": "Gagal mengambil data dari API pusat",
-			})
-		}
-
-		return c.JSON(fiber.Map{
-			"success": true,
-			"data":    data,
-		})
-	})
+	api.Get("/surahs", surahHandler.GetSurahs)
 
 	// Progress
 	api.Post("/progress/bulk", middleware.JWT(tokenMaker), middleware.RBAC("mentor", "admin"), progressHandler.BulkCreateProgress)
@@ -75,44 +60,4 @@ func Setup(app *fiber.App, authHandler *auth.AuthHandler, studentHandler *studen
 
 	// Dashboard
 	api.Get("/dashboard/summary", progressHandler.GetDashboardSummary)
-}
-
-func getSurahs() any {
-	agent := fiber.Get("https://equran.id/api/v2/surat")
-
-	var response struct {
-		Code    int    `json:"code"`
-		Message string `json:"message"`
-		Data    []struct {
-			Nomor       int               `json:"nomor"`
-			Nama        string            `json:"nama"`
-			NamaLatin   string            `json:"namaLatin"`
-			JumlahAyat  int               `json:"jumlahAyat"`
-			TempatTurun string            `json:"tempatTurun"`
-			Arti        string            `json:"arti"`
-			Deskripsi   string            `json:"deskripsi"`
-			AudioFull   map[string]string `json:"audioFull"`
-		} `json:"data"`
-	}
-
-	agent.Timeout(10 * time.Second)
-
-	statusCode, body, errs := agent.Bytes()
-
-	if len(errs) > 0 {
-		fmt.Println("Error Fetching:", errs)
-		return nil
-	}
-
-	if statusCode != 200 {
-		fmt.Println("Status Code Not 200:", statusCode)
-		return nil
-	}
-
-	if err := json.Unmarshal(body, &response); err != nil {
-		fmt.Println("Unmarshal Error:", err)
-		return nil
-	}
-
-	return response.Data
 }
