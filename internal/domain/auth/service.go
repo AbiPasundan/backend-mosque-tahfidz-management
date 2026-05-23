@@ -20,6 +20,7 @@ type AuthService interface {
 	ListUsers(search, role string, page, limit int) ([]UserResponse, int, error)
 	UpdateProfile(id uuid.UUID, req *UpdateProfileRequest) (*UserResponse, error)
 	UpdatePassword(id uuid.UUID, req *UpdatePasswordRequest) error
+	GetMentorDetail(id uuid.UUID) (*MentorDetailResponse, error)
 }
 
 type authService struct {
@@ -184,4 +185,46 @@ func (s *authService) UpdatePassword(id uuid.UUID, req *UpdatePasswordRequest) e
 	}
 
 	return s.repo.UpdatePassword(id, hashedPassword)
+}
+
+func (s *authService) GetMentorDetail(id uuid.UUID) (*MentorDetailResponse, error) {
+	user, err := s.repo.DetailMentor(id)
+	if err != nil {
+		return nil, errors.New("mentor not found")
+	}
+
+	students, err := s.repo.GetMentorStudents(id)
+	if err != nil {
+		log.Error().Err(err).Str("mentor_id", id.String()).Msg("failed to fetch mentor students")
+	}
+
+	studentResponses := make([]MentorStudentResponse, 0)
+	for _, st := range students {
+		lastProgress := ""
+		if st.LastProgress != nil {
+			lastProgress = st.LastProgress.Format("2006-01-02 15:04:05")
+		}
+
+		studentResponses = append(studentResponses, MentorStudentResponse{
+			ID:            st.ID,
+			Name:          st.Name,
+			ProfileImg:    st.ProfileImg,
+			CoverImg:      st.CoverImg,
+			Age:           st.Age,
+			LearningLevel: st.LearningLevel,
+			Fluency:       st.Fluency,
+			Status:        st.Status,
+			Contact:       st.Contact,
+			JoinDate:      st.JoinDate.Format("2006-01-02"),
+			LastProgress:  lastProgress,
+		})
+	}
+
+	return &MentorDetailResponse{
+		ID:       user.ID,
+		Name:     user.Name,
+		Email:    user.Email,
+		Role:     user.Role,
+		Students: studentResponses,
+	}, nil
 }
