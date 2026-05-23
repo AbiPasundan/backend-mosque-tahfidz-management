@@ -41,7 +41,11 @@ func Setup(app *fiber.App, authHandler *auth.AuthHandler, studentHandler *studen
 	userGroup.Put("/:id", authHandler.UpdateUser)
 	userGroup.Delete("/:id", authHandler.DeleteUser)
 
+	// Mentors
+	api.Get("/mentors/:id", middleware.JWT(tokenMaker), authHandler.GetMentorDetail)
+
 	// Students
+
 	studentGroup := api.Group("/students")
 	studentGroup.Get("/", studentHandler.ListStudents)
 	studentGroup.Post("/", middleware.JWT(tokenMaker), middleware.RBAC("mentor", "admin"), studentHandler.CreateStudent)
