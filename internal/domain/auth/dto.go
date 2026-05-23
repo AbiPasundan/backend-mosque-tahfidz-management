@@ -44,3 +44,25 @@ type UserResponse struct {
 	Email  string    `json:"email"`
 	Role   string    `json:"role"`
 }
+
+type MentorDetailResponse struct {
+	ID       uuid.UUID               `json:"id"`
+	Name     string                  `json:"name"`
+	Email    string                  `json:"email"`
+	Role     string                  `json:"role"`
+	Students []MentorStudentResponse `json:"students"`
+}
+
+type MentorStudentResponse struct {
+	ID            uuid.UUID `json:"id"`
+	Name          string    `json:"name"`
+	ProfileImg    string    `json:"profile_img"`
+	CoverImg      string    `json:"cover_img"`
+	Age           int       `json:"age"`
+	LearningLevel string    `json:"learning_level"`
+	Fluency       string    `json:"fluency"`
+	Status        string    `json:"status"`
+	Contact       string    `json:"contact"`
+	JoinDate      string    `json:"join_date"`
+	LastProgress  string    `json:"last_progress,omitempty"`
+}
