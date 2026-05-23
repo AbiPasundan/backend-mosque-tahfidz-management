@@ -22,12 +22,12 @@ type studentMentorPair struct {
 }
 
 type progressSeed struct {
-	Surah        string
-	Status       string
-	AyatStart    int
-	AyatEnd      int
-	Notes        string
-	DaysAgo      int // relative to today, for realistic dates
+	Surah     string
+	Status    string
+	AyatStart int
+	AyatEnd   int
+	Notes     string
+	DaysAgo   int // relative to today, for realistic dates
 }
 
 func (s *ProgressSeeder) Seed(db *sqlx.DB) error {

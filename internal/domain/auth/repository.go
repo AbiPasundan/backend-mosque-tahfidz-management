@@ -15,6 +15,8 @@ type UserRepository interface {
 	Delete(id uuid.UUID) error
 	List(search, role string, page, limit int) ([]User, int, error)
 	UpdatePassword(id uuid.UUID, hashedPassword string) error
+	DetailMentor(id uuid.UUID) (*User, error)
+	GetMentorStudents(mentorID uuid.UUID) ([]MentorStudent, error)
 }
 
 type userRepository struct {
@@ -93,4 +95,23 @@ func (r *userRepository) UpdatePassword(id uuid.UUID, hashedPassword string) err
 	query := `UPDATE users SET password = $2 WHERE id = $1 AND deleted_at IS NULL`
 	_, err := r.db.Exec(query, id, hashedPassword)
 	return err
+}
+
+func (r *userRepository) DetailMentor(id uuid.UUID) (*User, error) {
+	var user User
+	query := `SELECT id, name, email, role, deleted_at FROM users WHERE id = $1 AND role = 'mentor' AND deleted_at IS NULL`
+	err := r.db.Get(&user, query, id)
+	return &user, err
+}
+
+func (r *userRepository) GetMentorStudents(mentorID uuid.UUID) ([]MentorStudent, error) {
+	var students []MentorStudent
+	query := `
+		SELECT id, mentor_id, name, profile_img, cover_img, age, learning_level, fluency, status, contact, join_date, last_progress, created_at, updated_at
+		FROM students
+		WHERE mentor_id = $1
+		AND deleted_at IS NULL
+	`
+	err := r.db.Select(&students, query, mentorID)
+	return students, err
 }
