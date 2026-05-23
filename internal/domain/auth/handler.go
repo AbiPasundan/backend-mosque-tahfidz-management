@@ -227,3 +227,29 @@ func (h *AuthHandler) UpdatePassword(c *fiber.Ctx) error {
 
 	return utils.SuccessResponse(c, fiber.StatusOK, "password updated", nil)
 }
+
+// @Summary Get mentor detail with students
+// @Description Get mentor profile and list of assigned students
+// @Tags mentors
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param id path string true "Mentor ID"
+// @Success 200 {object} utils.BaseResponse{data=MentorDetailResponse} "mentor detail fetched"
+// @Failure 400 {object} utils.BaseResponse "invalid mentor id"
+// @Failure 404 {object} utils.BaseResponse "mentor not found"
+// @Router /api/v1/mentors/{id} [get]
+func (h *AuthHandler) GetMentorDetail(c *fiber.Ctx) error {
+
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusBadRequest, "invalid mentor id")
+	}
+
+	resp, err := h.service.GetMentorDetail(id)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusNotFound, err.Error())
+	}
+
+	return utils.SuccessResponse(c, fiber.StatusOK, "mentor detail fetched", resp)
+}
