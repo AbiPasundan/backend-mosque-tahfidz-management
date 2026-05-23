@@ -7,6 +7,7 @@ import (
 	"backend-mosque-tahfidz-management/internal/domain/auth"
 	"backend-mosque-tahfidz-management/internal/domain/progress"
 	"backend-mosque-tahfidz-management/internal/domain/student"
+	"backend-mosque-tahfidz-management/internal/domain/surah"
 	"backend-mosque-tahfidz-management/internal/routes"
 	"backend-mosque-tahfidz-management/pkg/token"
 
@@ -38,6 +39,7 @@ func main() {
 	authHandler := auth.NewAuthHandler(authService)
 	studentHandler := student.NewStudentHandler(studentService)
 	progressHandler := progress.NewProgressHandler(progressService)
+	surahHandler := surah.NewSurahHandler()
 
 	// Fiber app
 	app := fiber.New(fiber.Config{
@@ -57,7 +59,7 @@ func main() {
 	}))
 
 	// Setup routes
-	routes.Setup(app, authHandler, studentHandler, progressHandler, tokenMaker)
+	routes.Setup(app, authHandler, studentHandler, progressHandler, surahHandler, tokenMaker)
 
 	log.Fatal(app.Listen(":3000"))
 }
