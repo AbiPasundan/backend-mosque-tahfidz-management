@@ -1,7 +1,9 @@
 package auth
 
 import (
+	"backend-mosque-tahfidz-management/internal/domain/activity_log"
 	"backend-mosque-tahfidz-management/pkg/utils"
+	"fmt"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -9,11 +11,12 @@ import (
 )
 
 type AuthHandler struct {
-	service AuthService
+	service            AuthService
+	activityLogService activity_log.ActivityLogService
 }
 
-func NewAuthHandler(service AuthService) *AuthHandler {
-	return &AuthHandler{service: service}
+func NewAuthHandler(service AuthService, activityLogService activity_log.ActivityLogService) *AuthHandler {
+	return &AuthHandler{service: service, activityLogService: activityLogService}
 }
 
 // @Summary Login
@@ -125,6 +128,22 @@ func (h *AuthHandler) CreateUser(c *fiber.Ctx) error {
 	resp, err := h.service.CreateUser(&req)
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+	}
+
+	// Log Activity
+	if actorIDStr, ok := c.Locals("user_id").(string); ok {
+		if actorID, err := uuid.Parse(actorIDStr); err == nil {
+			if actor, err := h.service.GetUser(actorID); err == nil {
+				_ = h.activityLogService.LogAction(
+					&actorID,
+					actor.Name,
+					"CREATE_USER",
+					"user",
+					&resp.ID,
+					fmt.Sprintf("Registered new %s: %s", resp.Role, resp.Name),
+				)
+			}
+		}
 	}
 
 	return utils.SuccessResponse(c, fiber.StatusCreated, "user created", resp)
