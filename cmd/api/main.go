@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"backend-mosque-tahfidz-management/internal/config"
+	"backend-mosque-tahfidz-management/internal/domain/activity_log"
 	"backend-mosque-tahfidz-management/internal/domain/auth"
 	"backend-mosque-tahfidz-management/internal/domain/progress"
 	"backend-mosque-tahfidz-management/internal/domain/student"
@@ -29,16 +30,19 @@ func main() {
 	userRepo := auth.NewUserRepository(db)
 	studentRepo := student.NewStudentRepository(db)
 	progressRepo := progress.NewProgressRepository(db)
+	activityLogRepo := activity_log.NewActivityLogRepository(db)
 
 	// Services
 	authService := auth.NewAuthService(userRepo, tokenMaker)
 	studentService := student.NewStudentService(studentRepo)
 	progressService := progress.NewProgressService(progressRepo)
+	activityLogService := activity_log.NewActivityLogService(activityLogRepo)
 
 	// Handlers
-	authHandler := auth.NewAuthHandler(authService)
-	studentHandler := student.NewStudentHandler(studentService)
-	progressHandler := progress.NewProgressHandler(progressService)
+	authHandler := auth.NewAuthHandler(authService, activityLogService)
+	studentHandler := student.NewStudentHandler(studentService, authService, activityLogService)
+	progressHandler := progress.NewProgressHandler(progressService, authService, studentService, activityLogService)
+	activityLogHandler := activity_log.NewActivityLogHandler(activityLogService)
 	surahHandler := surah.NewSurahHandler()
 
 	// Fiber app
@@ -59,7 +63,7 @@ func main() {
 	}))
 
 	// Setup routes
-	routes.Setup(app, authHandler, studentHandler, progressHandler, surahHandler, tokenMaker)
+	routes.Setup(app, authHandler, studentHandler, progressHandler, activityLogHandler, surahHandler, tokenMaker)
 
 	log.Fatal(app.Listen(":3010"))
 }
