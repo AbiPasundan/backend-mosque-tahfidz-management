@@ -20,6 +20,7 @@ func (s *StudentSeeder) TableName() string {
 
 type studentSeed struct {
 	Name          string
+	Username      string
 	Password      string
 	ProfileImg    string
 	CoverImg      string
@@ -45,81 +46,81 @@ func (s *StudentSeeder) Seed(db *sqlx.DB) error {
 
 	students := []studentSeed{
 		{
-			Name: "Muhammad Rizki", Password: "student123",
+			Name: "Muhammad Rizki", Username: "muhammad.rizki", Password: "student123",
 			Age: 12, LearningLevel: "Juz 1-5", Fluency: "Lancar",
 			Status: "active", Contact: "081234567001",
 			JoinDate: time.Date(2025, 1, 15, 0, 0, 0, 0, time.UTC),
 		},
 		{
-			Name: "Aisyah Putri", Password: "student123",
+			Name: "Aisyah Putri", Username: "aisyah.putri", Password: "student123",
 			Age: 10, LearningLevel: "Juz 1-3", Fluency: "Cukup Lancar",
 			Status: "active", Contact: "081234567002",
 			JoinDate: time.Date(2025, 2, 1, 0, 0, 0, 0, time.UTC),
 		},
 		{
-			Name: "Abdullah Hasan", Password: "student123",
+			Name: "Abdullah Hasan", Username: "abdullah.hasan", Password: "student123",
 			Age: 14, LearningLevel: "Juz 6-10", Fluency: "Lancar",
 			Status: "active", Contact: "081234567003",
 			JoinDate: time.Date(2024, 8, 20, 0, 0, 0, 0, time.UTC),
 		},
 		{
-			Name: "Fatimah Zahra", Password: "student123",
+			Name: "Fatimah Zahra", Username: "fatimah.zahra", Password: "student123",
 			Age: 11, LearningLevel: "Juz 1-5", Fluency: "Perlu Bimbingan",
 			Status: "active", Contact: "081234567004",
 			JoinDate: time.Date(2025, 3, 10, 0, 0, 0, 0, time.UTC),
 		},
 		{
-			Name: "Umar Farooq", Password: "student123",
+			Name: "Umar Farooq", Username: "umar.farooq", Password: "student123",
 			Age: 13, LearningLevel: "Juz 11-15", Fluency: "Lancar",
 			Status: "active", Contact: "081234567005",
 			JoinDate: time.Date(2024, 6, 5, 0, 0, 0, 0, time.UTC),
 		},
 		{
-			Name: "Khadijah Aminah", Password: "student123",
+			Name: "Khadijah Aminah", Username: "khadijah.aminah", Password: "student123",
 			Age: 9, LearningLevel: "Juz 1-3", Fluency: "Perlu Bimbingan",
 			Status: "active", Contact: "081234567006",
 			JoinDate: time.Date(2025, 4, 1, 0, 0, 0, 0, time.UTC),
 		},
 		{
-			Name: "Ali Rahman", Password: "student123",
+			Name: "Ali Rahman", Username: "ali.rahman", Password: "student123",
 			Age: 15, LearningLevel: "Juz 16-20", Fluency: "Sangat Lancar",
 			Status: "active", Contact: "081234567007",
 			JoinDate: time.Date(2023, 11, 15, 0, 0, 0, 0, time.UTC),
 		},
 		{
-			Name: "Zainab Sari", Password: "student123",
+			Name: "Zainab Sari", Username: "zainab.sari", Password: "student123",
 			Age: 12, LearningLevel: "Juz 1-5", Fluency: "Cukup Lancar",
 			Status: "inactive", Contact: "081234567008",
 			JoinDate: time.Date(2024, 9, 1, 0, 0, 0, 0, time.UTC),
 		},
 		{
-			Name: "Hamza Pratama", Password: "student123",
+			Name: "Hamza Pratama", Username: "hamza.pratama", Password: "student123",
 			Age: 10, LearningLevel: "Juz 1-3", Fluency: "Lancar",
 			Status: "active", Contact: "081234567009",
 			JoinDate: time.Date(2025, 1, 20, 0, 0, 0, 0, time.UTC),
 		},
 		{
-			Name: "Maryam Dewi", Password: "student123",
+			Name: "Maryam Dewi", Username: "maryam.dewi", Password: "student123",
 			Age: 13, LearningLevel: "Juz 6-10", Fluency: "Cukup Lancar",
 			Status: "active", Contact: "081234567010",
 			JoinDate: time.Date(2024, 7, 10, 0, 0, 0, 0, time.UTC),
 		},
 		{
-			Name: "Yusuf Hakim", Password: "student123",
+			Name: "Yusuf Hakim", Username: "yusuf.hakim", Password: "student123",
 			Age: 11, LearningLevel: "Juz 1-5", Fluency: "Perlu Bimbingan",
 			Status: "inactive", Contact: "081234567011",
 			JoinDate: time.Date(2025, 2, 15, 0, 0, 0, 0, time.UTC),
 		},
 		{
-			Name: "Salma Nurul", Password: "student123",
+			Name: "Salma Nurul", Username: "salma.nurul", Password: "student123",
 			Age: 14, LearningLevel: "Juz 11-15", Fluency: "Lancar",
 			Status: "active", Contact: "081234567012",
 			JoinDate: time.Date(2024, 4, 1, 0, 0, 0, 0, time.UTC),
 		},
 	}
 
-	query := `INSERT INTO students (mentor_id, name, password, profile_img, cover_img, age, learning_level, fluency, status, contact, join_date) 
-	          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+	query := `INSERT INTO students (mentor_id, name, username, password, profile_img, cover_img, age, learning_level, fluency, status, contact, join_date) 
+	          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 	          ON CONFLICT DO NOTHING`
 
 	for i, st := range students {
@@ -132,7 +133,7 @@ func (s *StudentSeeder) Seed(db *sqlx.DB) error {
 		mentorID := mentorIDs[i%len(mentorIDs)]
 
 		_, err = db.Exec(query,
-			mentorID, st.Name, hashedPassword,
+			mentorID, st.Name, st.Username, hashedPassword,
 			st.ProfileImg, st.CoverImg,
 			st.Age, st.LearningLevel, st.Fluency, st.Status,
 			st.Contact, st.JoinDate,
