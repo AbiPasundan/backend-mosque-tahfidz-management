@@ -12,7 +12,7 @@ import (
 type StudentService interface {
 	CreateStudent(req *CreateStudentRequest, mentorID uuid.UUID) (*StudentResponse, error)
 	GetStudent(id uuid.UUID) (*StudentResponse, error)
-	UpdateStudent(id uuid.UUID, req *UpdateStudentRequest) (*StudentResponse, error)
+	UpdateStudent(id uuid.UUID, req *UpdateStudentRequest, actorID uuid.UUID, actorRole string) (*StudentResponse, error)
 	DeleteStudent(id uuid.UUID) error
 	ListStudents(search, status, learningLevel string, page, limit int) ([]StudentResponse, int, error)
 }
@@ -59,10 +59,19 @@ func (s *studentService) GetStudent(id uuid.UUID) (*StudentResponse, error) {
 	return s.toResponse(student), nil
 }
 
-func (s *studentService) UpdateStudent(id uuid.UUID, req *UpdateStudentRequest) (*StudentResponse, error) {
+func (s *studentService) UpdateStudent(id uuid.UUID, req *UpdateStudentRequest, actorID uuid.UUID, actorRole string) (*StudentResponse, error) {
 	student, err := s.repo.GetByID(id)
 	if err != nil {
 		return nil, errors.New("student not found")
+	}
+
+	// Permission checks:
+	// Admin can edit all.
+	// Mentor can only edit students assigned to them (student.MentorID == actorID).
+	if actorRole == "mentor" && student.MentorID != actorID {
+		return nil, errors.New("you do not have permission to edit this student")
+	} else if actorRole != "admin" && actorRole != "mentor" {
+		return nil, errors.New("unauthorized action")
 	}
 
 	if req.Name != "" {
@@ -71,11 +80,27 @@ func (s *studentService) UpdateStudent(id uuid.UUID, req *UpdateStudentRequest) 
 	if req.Username != "" {
 		student.Username = req.Username
 	}
+	if req.Password != "" {
+		hashed, err := utils.HashPassword(req.Password)
+		if err != nil {
+			return nil, errors.New("failed to hash password")
+		}
+		student.Password = hashed
+	}
+	if req.ProfileImg != "" {
+		student.ProfileImg = req.ProfileImg
+	}
+	if req.CoverImg != "" {
+		student.CoverImg = req.CoverImg
+	}
 	if req.Age != 0 {
 		student.Age = req.Age
 	}
 	if req.LearningLevel != "" {
 		student.LearningLevel = req.LearningLevel
+	}
+	if req.Fluency != "" {
+		student.Fluency = req.Fluency
 	}
 	if req.Status != "" {
 		student.Status = req.Status

@@ -45,10 +45,11 @@ func (r *studentRepository) GetByID(id uuid.UUID) (*Student, error) {
 }
 
 func (r *studentRepository) Update(student *Student) error {
-	query := `UPDATE students SET name = $2, username = $3, age = $4, learning_level = $5, fluency = $6, status = $7, contact = $8, updated_at = NOW()
+	query := `UPDATE students SET name = $2, username = $3, password = $4, profile_img = $5, cover_img = $6, age = $7, learning_level = $8, fluency = $9, status = $10, contact = $11, updated_at = NOW()
 	          WHERE id = $1 AND deleted_at IS NULL`
-	_, err := r.db.Exec(query, student.ID, student.Name, student.Username, student.Age,
-		student.LearningLevel, student.Fluency, student.Status, student.Contact)
+	_, err := r.db.Exec(query, student.ID, student.Name, student.Username, student.Password,
+		student.ProfileImg, student.CoverImg, student.Age, student.LearningLevel,
+		student.Fluency, student.Status, student.Contact)
 	return err
 }
 

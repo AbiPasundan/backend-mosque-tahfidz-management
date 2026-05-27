@@ -17,8 +17,12 @@ type CreateStudentRequest struct {
 type UpdateStudentRequest struct {
 	Name          string `json:"name"`
 	Username      string `json:"username"`
-	Age           int    `json:"age" validate:"min=5,max=25"`
+	Password      string `json:"password"`
+	ProfileImg    string `json:"profile_img"`
+	CoverImg      string `json:"cover_img"`
+	Age           int    `json:"age" validate:"omitempty,min=5,max=25"`
 	LearningLevel string `json:"learning_level"`
+	Fluency       string `json:"fluency"`
 	Contact       string `json:"contact"`
 	Status        string `json:"status"`
 }

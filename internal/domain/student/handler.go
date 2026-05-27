@@ -92,9 +92,35 @@ func (h *StudentHandler) UpdateStudent(c *fiber.Ctx) error {
 		return utils.ValidationErrorResponse(c, err)
 	}
 
-	resp, err := h.service.UpdateStudent(id, &req)
+	actorIDStr, ok := c.Locals("user_id").(string)
+	if !ok {
+		return utils.ErrorResponse(c, fiber.StatusUnauthorized, "unauthorized")
+	}
+	actorID, err := uuid.Parse(actorIDStr)
 	if err != nil {
-		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+		return utils.ErrorResponse(c, fiber.StatusUnauthorized, "invalid user context")
+	}
+
+	actorRole, ok := c.Locals("role").(string)
+	if !ok {
+		return utils.ErrorResponse(c, fiber.StatusUnauthorized, "role context not found")
+	}
+
+	resp, err := h.service.UpdateStudent(id, &req, actorID, actorRole)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusForbidden, err.Error())
+	}
+
+	// Log Activity
+	if actor, err := h.authService.GetUser(actorID); err == nil {
+		_ = h.activityLogService.LogAction(
+			&actorID,
+			actor.Name,
+			"UPDATE_STUDENT",
+			"student",
+			&resp.ID,
+			fmt.Sprintf("Updated student info: %s", resp.Name),
+		)
 	}
 
 	return utils.SuccessResponse(c, fiber.StatusOK, "student updated", resp)
