@@ -24,9 +24,9 @@ func NewStudentRepository(db *sqlx.DB) StudentRepository {
 }
 
 func (r *studentRepository) Create(student *Student) error {
-	query := `INSERT INTO students (id, mentor_id, name, password, profile_img, cover_img, age, learning_level, fluency, status, contact, join_date)
-	          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`
-	_, err := r.db.Exec(query, student.ID, student.MentorID, student.Name, student.Password,
+	query := `INSERT INTO students (id, mentor_id, name, username, password, profile_img, cover_img, age, learning_level, fluency, status, contact, join_date)
+	          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`
+	_, err := r.db.Exec(query, student.ID, student.MentorID, student.Name, student.Username, student.Password,
 		student.ProfileImg, student.CoverImg, student.Age, student.LearningLevel,
 		student.Fluency, student.Status, student.Contact, student.JoinDate)
 	return err
@@ -45,9 +45,9 @@ func (r *studentRepository) GetByID(id uuid.UUID) (*Student, error) {
 }
 
 func (r *studentRepository) Update(student *Student) error {
-	query := `UPDATE students SET name = $2, age = $3, learning_level = $4, fluency = $5, status = $6, contact = $7, updated_at = NOW()
+	query := `UPDATE students SET name = $2, username = $3, age = $4, learning_level = $5, fluency = $6, status = $7, contact = $8, updated_at = NOW()
 	          WHERE id = $1 AND deleted_at IS NULL`
-	_, err := r.db.Exec(query, student.ID, student.Name, student.Age,
+	_, err := r.db.Exec(query, student.ID, student.Name, student.Username, student.Age,
 		student.LearningLevel, student.Fluency, student.Status, student.Contact)
 	return err
 }
@@ -71,7 +71,7 @@ func (r *studentRepository) List(search, status, learningLevel string, page, lim
 	idx := 1
 
 	if search != "" {
-		baseQuery += fmt.Sprintf(` AND s.name ILIKE $%d`, idx)
+		baseQuery += fmt.Sprintf(` AND (s.name ILIKE $%d OR s.username ILIKE $%d)`, idx, idx)
 		args = append(args, "%"+search+"%")
 		idx++
 	}

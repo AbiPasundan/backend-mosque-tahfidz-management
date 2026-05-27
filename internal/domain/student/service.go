@@ -26,7 +26,7 @@ func NewStudentService(repo StudentRepository) StudentService {
 }
 
 func (s *studentService) CreateStudent(req *CreateStudentRequest, mentorID uuid.UUID) (*StudentResponse, error) {
-	hashedPassword, err := utils.HashPassword(uuid.New().String())
+	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
 		return nil, err
 	}
@@ -35,6 +35,7 @@ func (s *studentService) CreateStudent(req *CreateStudentRequest, mentorID uuid.
 		ID:            uuid.New(),
 		MentorID:      mentorID,
 		Name:          req.Name,
+		Username:      req.Username,
 		Password:      hashedPassword,
 		LearningLevel: req.LearningLevel,
 		Age:           req.Age,
@@ -66,6 +67,9 @@ func (s *studentService) UpdateStudent(id uuid.UUID, req *UpdateStudentRequest) 
 
 	if req.Name != "" {
 		student.Name = req.Name
+	}
+	if req.Username != "" {
+		student.Username = req.Username
 	}
 	if req.Age != 0 {
 		student.Age = req.Age
@@ -110,6 +114,7 @@ func (s *studentService) toResponse(student *Student) *StudentResponse {
 		MentorID:      student.MentorID,
 		MentorName:    student.MentorName,
 		Name:          student.Name,
+		Username:      student.Username,
 		ProfileImg:    student.ProfileImg,
 		CoverImg:      student.CoverImg,
 		Age:           student.Age,

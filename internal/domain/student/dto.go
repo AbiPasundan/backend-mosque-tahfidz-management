@@ -6,6 +6,8 @@ import (
 
 type CreateStudentRequest struct {
 	Name          string `json:"name" validate:"required"`
+	Username      string `json:"username" validate:"required,min=3,max=50"`
+	Password      string `json:"password" validate:"required,min=6"`
 	Age           int    `json:"age" validate:"required,min=5,max=25"`
 	LearningLevel string `json:"learning_level" validate:"required"`
 	Contact       string `json:"contact" validate:"required"`
@@ -14,6 +16,7 @@ type CreateStudentRequest struct {
 
 type UpdateStudentRequest struct {
 	Name          string `json:"name"`
+	Username      string `json:"username"`
 	Age           int    `json:"age" validate:"min=5,max=25"`
 	LearningLevel string `json:"learning_level"`
 	Contact       string `json:"contact"`
@@ -25,6 +28,7 @@ type StudentResponse struct {
 	MentorID      uuid.UUID `json:"mentor_id"`
 	MentorName    string    `json:"mentor_name,omitempty"`
 	Name          string    `json:"name"`
+	Username      string    `json:"username"`
 	ProfileImg    string    `json:"profile_img,omitempty"`
 	CoverImg      string    `json:"cover_img,omitempty"`
 	Age           int       `json:"age"`

@@ -11,6 +11,7 @@ type Student struct {
 	MentorID      uuid.UUID  `db:"mentor_id"`
 	MentorName    string     `db:"mentor_name"`
 	Name          string     `db:"name"`
+	Username      string     `db:"username"`
 	Password      string     `db:"password"`
 	ProfileImg    string     `db:"profile_img"`
 	CoverImg      string     `db:"cover_img"`
