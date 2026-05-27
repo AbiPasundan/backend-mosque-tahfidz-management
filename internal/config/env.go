@@ -15,6 +15,11 @@ type Config struct {
 	DBName     string
 	DBSSLMode  string
 	JWTSecret  string
+
+	// Cloudinary
+	CloudinaryCloudName string
+	CloudinaryAPIKey    string
+	CloudinaryAPISecret string
 }
 
 func LoadConfig() *Config {
@@ -30,6 +35,10 @@ func LoadConfig() *Config {
 		DBName:     getEnv("DB_NAME", "management_siswa"),
 		DBSSLMode:  getEnv("DB_SSL_MODE", "require"),
 		JWTSecret:  getEnv("JWT_SECRET", "supersecretkey"),
+
+		CloudinaryCloudName: getEnv("CLOUDINARY_CLOUD_NAME", ""),
+		CloudinaryAPIKey:    getEnv("CLOUDINARY_API_KEY", ""),
+		CloudinaryAPISecret: getEnv("CLOUDINARY_API_SECRET", ""),
 	}
 }
 
