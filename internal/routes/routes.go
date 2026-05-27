@@ -1,20 +1,28 @@
 package routes
 
 import (
-	"time"
-
+	"backend-mosque-tahfidz-management/internal/domain/activity_log"
 	"backend-mosque-tahfidz-management/internal/domain/auth"
 	"backend-mosque-tahfidz-management/internal/domain/progress"
 	"backend-mosque-tahfidz-management/internal/domain/student"
 	"backend-mosque-tahfidz-management/internal/domain/surah"
 	"backend-mosque-tahfidz-management/internal/middleware"
 	"backend-mosque-tahfidz-management/pkg/token"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 )
 
-func Setup(app *fiber.App, authHandler *auth.AuthHandler, studentHandler *student.StudentHandler, progressHandler *progress.ProgressHandler, surahHandler *surah.SurahHandler, tokenMaker token.Maker) {
+func Setup(
+	app *fiber.App,
+	authHandler *auth.AuthHandler,
+	studentHandler *student.StudentHandler,
+	progressHandler *progress.ProgressHandler,
+	activityLogHandler *activity_log.ActivityLogHandler,
+	surahHandler *surah.SurahHandler,
+	tokenMaker token.Maker,
+) {
 	app.Use(middleware.RequestID())
 	app.Use(middleware.Logger())
 	app.Use(middleware.Recover())
@@ -64,4 +72,7 @@ func Setup(app *fiber.App, authHandler *auth.AuthHandler, studentHandler *studen
 
 	// Dashboard
 	api.Get("/dashboard/summary", progressHandler.GetDashboardSummary)
+
+	// Activity Logs
+	api.Get("/activity-logs", middleware.JWT(tokenMaker), middleware.RBAC("admin"), activityLogHandler.ListActivityLogs)
 }
