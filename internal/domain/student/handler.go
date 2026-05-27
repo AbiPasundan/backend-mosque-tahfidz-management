@@ -1,18 +1,27 @@
 package student
 
 import (
+	"backend-mosque-tahfidz-management/internal/domain/activity_log"
+	"backend-mosque-tahfidz-management/internal/domain/auth"
 	"backend-mosque-tahfidz-management/pkg/utils"
+	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
 
 type StudentHandler struct {
-	service StudentService
+	service            StudentService
+	authService        auth.AuthService
+	activityLogService activity_log.ActivityLogService
 }
 
-func NewStudentHandler(service StudentService) *StudentHandler {
-	return &StudentHandler{service: service}
+func NewStudentHandler(service StudentService, authService auth.AuthService, activityLogService activity_log.ActivityLogService) *StudentHandler {
+	return &StudentHandler{
+		service:            service,
+		authService:        authService,
+		activityLogService: activityLogService,
+	}
 }
 
 func (h *StudentHandler) CreateStudent(c *fiber.Ctx) error {
@@ -33,6 +42,22 @@ func (h *StudentHandler) CreateStudent(c *fiber.Ctx) error {
 	resp, err := h.service.CreateStudent(&req, mentorID)
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+	}
+
+	// Log Activity
+	if actorIDStr, ok := c.Locals("user_id").(string); ok {
+		if actorID, err := uuid.Parse(actorIDStr); err == nil {
+			if actor, err := h.authService.GetUser(actorID); err == nil {
+				_ = h.activityLogService.LogAction(
+					&actorID,
+					actor.Name,
+					"CREATE_STUDENT",
+					"student",
+					&resp.ID,
+					fmt.Sprintf("Registered new student: %s", resp.Name),
+				)
+			}
+		}
 	}
 
 	return utils.SuccessResponse(c, fiber.StatusCreated, "student created", resp)
@@ -81,8 +106,30 @@ func (h *StudentHandler) DeleteStudent(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, fiber.StatusBadRequest, "invalid student id")
 	}
 
+	// Fetch student first to get their name for the activity log
+	studentName := "Unknown Student"
+	if st, err := h.service.GetStudent(id); err == nil {
+		studentName = st.Name
+	}
+
 	if err := h.service.DeleteStudent(id); err != nil {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+	}
+
+	// Log Activity
+	if actorIDStr, ok := c.Locals("user_id").(string); ok {
+		if actorID, err := uuid.Parse(actorIDStr); err == nil {
+			if actor, err := h.authService.GetUser(actorID); err == nil {
+				_ = h.activityLogService.LogAction(
+					&actorID,
+					actor.Name,
+					"DELETE_STUDENT",
+					"student",
+					&id,
+					fmt.Sprintf("Deleted student: %s", studentName),
+				)
+			}
+		}
 	}
 
 	return utils.SuccessResponse(c, fiber.StatusOK, "student deleted", nil)
