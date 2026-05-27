@@ -13,6 +13,8 @@ type ProgressRepository interface {
 	Update(progress *Progress) error
 	List(studentID, date string, page, limit int) ([]Progress, int, error)
 	GetDashboardSummary() (*DashboardSummary, error)
+	GetWeeklyActivity() ([]DailyActivityCount, error)
+	GetRecentProgress(limit int) ([]RecentProgressItem, error)
 }
 
 type progressRepository struct {
@@ -117,4 +119,47 @@ func (r *progressRepository) GetDashboardSummary() (*DashboardSummary, error) {
 	`
 	err := r.db.Get(&summary, query)
 	return &summary, err
+}
+
+func (r *progressRepository) GetWeeklyActivity() ([]DailyActivityCount, error) {
+	var results []DailyActivityCount
+	query := `
+		SELECT 
+			TO_CHAR(d.date, 'Dy') AS day,
+			TO_CHAR(d.date, 'YYYY-MM-DD') AS date,
+			COALESCE(COUNT(p.id), 0) AS count
+		FROM generate_series(
+			CURRENT_DATE - INTERVAL '6 days',
+			CURRENT_DATE,
+			'1 day'
+		) AS d(date)
+		LEFT JOIN progress p ON p.progress_date::date = d.date::date
+		GROUP BY d.date
+		ORDER BY d.date ASC
+	`
+	err := r.db.Select(&results, query)
+	return results, err
+}
+
+func (r *progressRepository) GetRecentProgress(limit int) ([]RecentProgressItem, error) {
+	var results []RecentProgressItem
+	query := `
+		SELECT 
+			s.id::text AS student_id,
+			s.name AS student_name,
+			COALESCE(s.profile_img, '') AS profile_img,
+			p.surah,
+			p.ayat_start,
+			p.ayat_end,
+			p.status,
+			COALESCE(u.name, 'Unknown') AS mentor_name,
+			TO_CHAR(p.progress_date, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS progress_date
+		FROM progress p
+		JOIN students s ON s.id = p.student_id
+		LEFT JOIN users u ON u.id = p.mentor_id
+		ORDER BY p.progress_date DESC
+		LIMIT $1
+	`
+	err := r.db.Select(&results, query, limit)
+	return results, err
 }

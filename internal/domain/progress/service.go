@@ -100,10 +100,22 @@ func (s *progressService) GetDashboardSummary() (*DashboardSummaryResponse, erro
 		return nil, err
 	}
 
+	weeklyActivity, err := s.repo.GetWeeklyActivity()
+	if err != nil {
+		return nil, err
+	}
+
+	recentProgress, err := s.repo.GetRecentProgress(5)
+	if err != nil {
+		return nil, err
+	}
+
 	return &DashboardSummaryResponse{
 		TotalStudents:            summary.TotalStudents,
 		ActiveToday:              summary.ActiveToday,
 		WeeklyProgressPercentage: summary.WeeklyProgressPercentage,
+		WeeklyActivity:           weeklyActivity,
+		RecentProgress:           recentProgress,
 	}, nil
 }
 

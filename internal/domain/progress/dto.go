@@ -39,7 +39,9 @@ type ProgressResponse struct {
 }
 
 type DashboardSummaryResponse struct {
-	TotalStudents            int     `json:"total_students"`
-	ActiveToday              int     `json:"active_today"`
-	WeeklyProgressPercentage float64 `json:"weekly_progress_percentage"`
+	TotalStudents            int                    `json:"total_students"`
+	ActiveToday              int                    `json:"active_today"`
+	WeeklyProgressPercentage float64                `json:"weekly_progress_percentage"`
+	WeeklyActivity           []DailyActivityCount   `json:"weekly_activity"`
+	RecentProgress           []RecentProgressItem   `json:"recent_progress"`
 }
