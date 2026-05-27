@@ -6,6 +6,7 @@ import (
 	"backend-mosque-tahfidz-management/internal/domain/progress"
 	"backend-mosque-tahfidz-management/internal/domain/student"
 	"backend-mosque-tahfidz-management/internal/domain/surah"
+	"backend-mosque-tahfidz-management/internal/domain/upload"
 	"backend-mosque-tahfidz-management/internal/middleware"
 	"backend-mosque-tahfidz-management/pkg/token"
 	"time"
@@ -21,6 +22,7 @@ func Setup(
 	progressHandler *progress.ProgressHandler,
 	activityLogHandler *activity_log.ActivityLogHandler,
 	surahHandler *surah.SurahHandler,
+	uploadHandler *upload.UploadHandler,
 	tokenMaker token.Maker,
 ) {
 	app.Use(middleware.RequestID())
@@ -75,4 +77,7 @@ func Setup(
 
 	// Activity Logs
 	api.Get("/activity-logs", middleware.JWT(tokenMaker), middleware.RBAC("admin"), activityLogHandler.ListActivityLogs)
+
+	// File Upload (Cloudinary)
+	api.Post("/upload", middleware.JWT(tokenMaker), middleware.RBAC("mentor", "admin"), uploadHandler.UploadFile)
 }
