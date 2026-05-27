@@ -99,7 +99,7 @@ func (r *userRepository) UpdatePassword(id uuid.UUID, hashedPassword string) err
 
 func (r *userRepository) DetailMentor(id uuid.UUID) (*User, error) {
 	var user User
-	query := `SELECT id, name, email, role, deleted_at FROM users WHERE id = $1 AND role = 'mentor' AND deleted_at IS NULL`
+	query := `SELECT id, name, email, role, deleted_at FROM users WHERE id = $1 AND deleted_at IS NULL`
 	err := r.db.Get(&user, query, id)
 	return &user, err
 }

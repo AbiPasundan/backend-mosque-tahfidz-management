@@ -10,8 +10,9 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	Token string `json:"token"`
-	Role  string `json:"role"`
+	UserID uuid.UUID `json:"user_id"`
+	Token  string    `json:"token"`
+	Role   string    `json:"role"`
 }
 
 type CreateUserRequest struct {

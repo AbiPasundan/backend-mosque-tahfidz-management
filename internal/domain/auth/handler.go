@@ -53,8 +53,19 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 		Path:     "/",
 	})
 
+	// Fetch user detail for response body
+	userData, err := h.service.GetUser(resp.UserID)
+	if err != nil {
+		// Fallback to minimal data if GetUser fails
+		return utils.SuccessResponse(c, fiber.StatusOK, "login successful", fiber.Map{
+			"role":  resp.Role,
+			"token": resp.Token,
+		})
+	}
+
 	return utils.SuccessResponse(c, fiber.StatusOK, "login successful", fiber.Map{
-		"role": resp.Role,
+		"user":  userData,
+		"token": resp.Token,
 	})
 }
 
@@ -66,7 +77,7 @@ func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 		Expires:  time.Now().Add(-time.Hour),
 		MaxAge:   -1,
 		HTTPOnly: true,
-		Secure:   true,
+		Secure:   false,
 		SameSite: "Lax",
 		Path:     "/",
 	})

@@ -49,7 +49,7 @@ func (s *authService) Login(email, password string) (*LoginResponse, error) {
 		return nil, err
 	}
 
-	return &LoginResponse{Token: token, Role: user.Role}, nil
+	return &LoginResponse{UserID: user.ID, Token: token, Role: user.Role}, nil
 }
 
 func (s *authService) CreateUser(req *CreateUserRequest) (*UserResponse, error) {
