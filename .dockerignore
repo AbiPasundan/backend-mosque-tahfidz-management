@@ -1,0 +1,29 @@
+# Ignore local environment variables and credentials
+.env
+.env.local
+*.env
+
+# Ignore git folder
+.git
+.gitignore
+
+# Ignore build artifacts and temporary files
+tmp/
+api
+*.exe
+*.test
+*.out
+
+# Ignore documentation, database models, etc. that aren't needed for build
+ERD.mermaid
+README
+README.md
+
+# Ignore IDE configs
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
