@@ -39,7 +39,25 @@ erDiagram
         progress_date date
     }
 
+    MEMORIZE {
+        string id PK
+        string student_id FK
+        string verified_by FK "Siapa yang memverifikasi hafalan ini"
+        string surah
+        int surah_number
+        int ayat_start
+        int ayat_end
+        string status "memorized || in_progress || murojaah || forgotten"
+        string notes
+        timestamp memorized_at
+        timestamp last_reviewed_at
+        timestamp created_at
+        timestamp updated_at
+    }
+
     %% Relasi
     USERS ||--o{ STUDENT : "membina (Wali Kelas)"
     USERS ||--o{ PROGRESS : "mencatat hafalan"
     STUDENT ||--o{ PROGRESS : "memiliki"
+    STUDENT ||--o{ MEMORIZE : "menghafal"
+    USERS ||--o{ MEMORIZE : "memverifikasi"
