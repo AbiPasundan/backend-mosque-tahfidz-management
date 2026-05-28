@@ -4,6 +4,7 @@ import (
 	"backend-mosque-tahfidz-management/internal/config"
 	"backend-mosque-tahfidz-management/internal/domain/activity_log"
 	"backend-mosque-tahfidz-management/internal/domain/auth"
+	"backend-mosque-tahfidz-management/internal/domain/memorize"
 	"backend-mosque-tahfidz-management/internal/domain/progress"
 	"backend-mosque-tahfidz-management/internal/domain/student"
 	"backend-mosque-tahfidz-management/internal/domain/surah"
@@ -18,6 +19,7 @@ type Container struct {
 	AuthHandler        *auth.AuthHandler
 	StudentHandler     *student.StudentHandler
 	ProgressHandler    *progress.ProgressHandler
+	MemorizeHandler    *memorize.MemorizeHandler
 	ActivityLogHandler *activity_log.ActivityLogHandler
 	SurahHandler       *surah.SurahHandler
 	UploadHandler      *upload.UploadHandler
@@ -45,6 +47,9 @@ func New(cfg *config.Config, db *sqlx.DB) *Container {
 	authHandler := auth.NewAuthHandler(authService, activityLogService)
 	studentHandler := student.NewStudentHandler(studentService, authService, activityLogService)
 	progressHandler := progress.NewProgressHandler(progressService, authService, studentService, activityLogService)
+	memorizeRepo := memorize.NewMemorizeRepository(db)
+	memorizeService := memorize.NewMemorizeService(memorizeRepo)
+	memorizeHandler := memorize.NewMemorizeHandler(memorizeService, authService, activityLogService)
 	activityLogHandler := activity_log.NewActivityLogHandler(activityLogService)
 	surahHandler := surah.NewSurahHandler()
 	uploadHandler := upload.NewUploadHandler(cloudinaryService)
@@ -53,6 +58,7 @@ func New(cfg *config.Config, db *sqlx.DB) *Container {
 		AuthHandler:        authHandler,
 		StudentHandler:     studentHandler,
 		ProgressHandler:    progressHandler,
+		MemorizeHandler:    memorizeHandler,
 		ActivityLogHandler: activityLogHandler,
 		SurahHandler:       surahHandler,
 		UploadHandler:      uploadHandler,
