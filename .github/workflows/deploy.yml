@@ -1,0 +1,88 @@
+name: Deploy to Google Cloud Run
+
+on:
+  push:
+    branches:
+      - main  # Trigger pipeline when code is pushed to the main branch
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: asia-southeast2 # Jakarta region (or change to your preferred GCP region)
+  SERVICE_NAME: backend-mosque-tahfidz
+  GAR_LOCATION: asia-southeast2-docker.pkg.dev # Artifact Registry host
+  REPOSITORY_NAME: tahfidz-repo # Name of your Google Artifact Registry repository
+
+jobs:
+  deploy:
+    name: Build, Push, and Deploy to GCP
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write # Required for secure Workload Identity Federation
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      # ==============================================================================
+      # AUTHENTICATION WITH GOOGLE CLOUD
+      # ==============================================================================
+      # Option A: Using Workload Identity Federation (Highly Recommended & Secure)
+      - name: Authenticate to Google Cloud via WIF
+        id: auth-wif
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_WIF_SERVICE_ACCOUNT }}
+
+      # Option B: Using Service Account Key JSON (Uncomment this if you prefer traditional SA keys)
+      # - name: Authenticate to Google Cloud via SA Key JSON
+      #   uses: google-github-actions/auth@v2
+      #   with:
+      #     credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      # ==============================================================================
+      # CONFIGURE DOCKER & ARTIFACT REGISTRY
+      # ==============================================================================
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker Client for Artifact Registry
+        run: |
+          gcloud auth configure-docker ${{ env.GAR_LOCATION }} --quiet
+
+      # ==============================================================================
+      # BUILD AND PUSH DOCKER IMAGE
+      # ==============================================================================
+      - name: Build and Push Docker Image
+        run: |
+          IMAGE_TAG="${{ env.GAR_LOCATION }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }}"
+          docker build -t $IMAGE_TAG .
+          docker push $IMAGE_TAG
+          # Save image tag for the next deploy step
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+
+      # ==============================================================================
+      # DEPLOY TO GOOGLE CLOUD RUN
+      # ==============================================================================
+      - name: Deploy to Cloud Run
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.SERVICE_NAME }}
+          region: ${{ env.REGION }}
+          image: ${{ env.IMAGE_TAG }}
+          # Standard resource allocation and configurations
+          flags: |
+            --allow-unauthenticated
+            --max-instances=5
+            --min-instances=0
+            --cpu=1
+            --memory=512Mi
+            --port=3010
+
+      - name: Show Deployment URL
+        run: |
+          echo "Deployment successful!"
+          echo "Service URL: ${{ steps.deploy.outputs.url }}"
