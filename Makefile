@@ -17,6 +17,9 @@ seed-fresh:
 seed-clean:
 	go run cmd/seed/main.go -clean
 
+seed-admin:
+	go run cmd/seed/main.go -admin
+
 # ── Development ────────────────────────────────────────────────
 dev:
 	go run cmd/api/main.go

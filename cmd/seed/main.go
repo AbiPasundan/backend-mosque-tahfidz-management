@@ -12,6 +12,7 @@ import (
 func main() {
 	fresh := flag.Bool("fresh", false, "Clean all tables before seeding")
 	clean := flag.Bool("clean", false, "Only clean all tables (no seeding)")
+	admin := flag.Bool("admin", false, "Seed only a single admin account")
 	flag.Parse()
 
 	cfg := config.LoadConfig()
@@ -33,6 +34,12 @@ func main() {
 		log.Println("🔄 Running fresh seed (clean + seed)...")
 		if err := seeds.FreshSeed(db); err != nil {
 			log.Fatalf("❌ Fresh seed failed: %v", err)
+		}
+	case *admin:
+		log.Println("👤 Seeding admin account...")
+		seeder := &seeds.AdminSeeder{}
+		if err := seeder.Seed(db); err != nil {
+			log.Fatalf("❌ Admin seed failed: %v", err)
 		}
 	default:
 		log.Println("🌱 Running seeders...")
