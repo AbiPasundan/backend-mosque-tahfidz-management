@@ -7,9 +7,9 @@ on:
 
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  REGION: asia-southeast2 # Jakarta region (or change to your preferred GCP region)
+  REGION: asia-southeast1 # Singapore region
   SERVICE_NAME: backend-mosque-tahfidz
-  GAR_LOCATION: asia-southeast2-docker.pkg.dev # Artifact Registry host
+  GAR_LOCATION: asia-southeast1-docker.pkg.dev # Singapore Artifact Registry host
   REPOSITORY_NAME: tahfidz-repo # Name of your Google Artifact Registry repository
 
 jobs:
