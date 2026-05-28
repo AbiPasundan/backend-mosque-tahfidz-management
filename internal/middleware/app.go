@@ -18,12 +18,12 @@ func NewApp() *fiber.App {
 	})
 }
 
-// CORS applies the CORS middleware with default allowed origins.
-func CORS() fiber.Handler {
+// CORS applies the CORS middleware with configurable allowed origins.
+func CORS(allowOrigins string) fiber.Handler {
 	return cors.New(cors.Config{
-		AllowOrigins:     "http://localhost:5173",
+		AllowOrigins:     allowOrigins,
 		AllowMethods:     "GET,POST,PUT,PATCH,DELETE,OPTIONS",
-		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, X-Requested-With",
 		AllowCredentials: true,
 	})
 }
