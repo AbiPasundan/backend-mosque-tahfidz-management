@@ -51,8 +51,8 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 		Value:    resp.Token,
 		Expires:  time.Now().Add(24 * time.Hour),
 		HTTPOnly: true,
-		Secure:   false,
-		SameSite: "Lax",
+		Secure:   true,
+		SameSite: "None",
 		Path:     "/",
 	})
 
@@ -80,8 +80,8 @@ func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 		Expires:  time.Now().Add(-time.Hour),
 		MaxAge:   -1,
 		HTTPOnly: true,
-		Secure:   false,
-		SameSite: "Lax",
+		Secure:   true,
+		SameSite: "None",
 		Path:     "/",
 	})
 
