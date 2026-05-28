@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"backend-mosque-tahfidz-management/container"
 	"backend-mosque-tahfidz-management/internal/config"
@@ -23,6 +24,9 @@ func main() {
 	app.Use(middleware.CORS())
 
 	routes.Setup(app, c.AuthHandler, c.StudentHandler, c.ProgressHandler, c.ActivityLogHandler, c.SurahHandler, c.UploadHandler, c.TokenMaker)
-
-	log.Fatal(app.Listen(":3010"))
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "3010"
+	}
+	log.Fatal(app.Listen(":" + port))
 }
