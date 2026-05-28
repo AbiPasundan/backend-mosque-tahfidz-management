@@ -68,7 +68,7 @@ func (r *studentRepository) List(search, status, learningLevel string, page, lim
 		LEFT JOIN users u ON s.mentor_id = u.id
 		WHERE s.deleted_at IS NULL
 	`
-	args := []interface{}{}
+	args := []any{}
 	idx := 1
 
 	if search != "" {
@@ -77,7 +77,7 @@ func (r *studentRepository) List(search, status, learningLevel string, page, lim
 		idx++
 	}
 	if status != "" {
-		baseQuery += fmt.Sprintf(` AND s.status = $%d`, idx)
+		baseQuery += fmt.Sprintf(` AND LOWER(s.status) = LOWER($%d)`, idx)
 		args = append(args, status)
 		idx++
 	}
