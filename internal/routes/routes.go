@@ -3,6 +3,7 @@ package routes
 import (
 	"backend-mosque-tahfidz-management/internal/domain/activity_log"
 	"backend-mosque-tahfidz-management/internal/domain/auth"
+	"backend-mosque-tahfidz-management/internal/domain/memorize"
 	"backend-mosque-tahfidz-management/internal/domain/progress"
 	"backend-mosque-tahfidz-management/internal/domain/student"
 	"backend-mosque-tahfidz-management/internal/domain/surah"
@@ -20,6 +21,7 @@ func Setup(
 	authHandler *auth.AuthHandler,
 	studentHandler *student.StudentHandler,
 	progressHandler *progress.ProgressHandler,
+	memorizeHandler *memorize.MemorizeHandler,
 	activityLogHandler *activity_log.ActivityLogHandler,
 	surahHandler *surah.SurahHandler,
 	uploadHandler *upload.UploadHandler,
@@ -71,6 +73,18 @@ func Setup(
 	api.Get("/progress", middleware.JWT(tokenMaker), middleware.RBAC("mentor", "admin"), progressHandler.ListProgress)
 	api.Post("/progress", middleware.JWT(tokenMaker), middleware.RBAC("mentor", "admin"), progressHandler.CreateProgress)
 	api.Put("/progress/:id", middleware.JWT(tokenMaker), middleware.RBAC("mentor", "admin"), progressHandler.UpdateProgress)
+
+	// Memorize
+	memorizeGroup := api.Group("/memorize", middleware.JWT(tokenMaker), middleware.RBAC("mentor", "admin"))
+	memorizeGroup.Post("/", memorizeHandler.CreateMemorize)
+	memorizeGroup.Get("/", memorizeHandler.ListByStudent)
+	memorizeGroup.Patch("/bulk-status", memorizeHandler.BulkUpdateStatus)
+	memorizeGroup.Get("/:id", memorizeHandler.GetByID)
+	memorizeGroup.Patch("/:id/status", memorizeHandler.UpdateStatus)
+	memorizeGroup.Delete("/:id", middleware.RBAC("admin"), memorizeHandler.DeleteMemorize)
+
+	// Student memorize views
+	api.Get("/students/:id/memorize/surah/:number", middleware.JWT(tokenMaker), memorizeHandler.GetStudentSurahDetail)
 
 	// Dashboard
 	api.Get("/dashboard/summary", progressHandler.GetDashboardSummary)
