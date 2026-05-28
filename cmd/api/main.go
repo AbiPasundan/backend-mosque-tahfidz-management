@@ -24,7 +24,16 @@ func main() {
 	app.Use(middleware.CORS(cfg.AllowOrigins))
 
 	routes.Setup(
-		app, c.AuthHandler, c.StudentHandler, c.ProgressHandler, c.ActivityLogHandler, c.SurahHandler, c.UploadHandler, c.TokenMaker)
+		app,
+		c.AuthHandler,
+		c.StudentHandler,
+		c.ProgressHandler,
+		c.MemorizeHandler,
+		c.ActivityLogHandler,
+		c.SurahHandler,
+		c.UploadHandler,
+		c.TokenMaker,
+	)
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "3010"
