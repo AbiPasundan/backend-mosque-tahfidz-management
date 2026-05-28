@@ -19,6 +19,7 @@ func RunAll(db *sqlx.DB) error {
 		&UserSeeder{},
 		&StudentSeeder{},
 		&ProgressSeeder{},
+		&MemorizeSeeder{},
 	}
 
 	for _, s := range seeders {
@@ -35,7 +36,7 @@ func RunAll(db *sqlx.DB) error {
 
 // CleanAll truncates all tables in reverse order (respecting FK constraints)
 func CleanAll(db *sqlx.DB) error {
-	tables := []string{"progress", "students", "users"}
+	tables := []string{"memorize", "progress", "students", "users"}
 
 	for _, table := range tables {
 		log.Printf("🧹 Cleaning table: %s ...", table)
